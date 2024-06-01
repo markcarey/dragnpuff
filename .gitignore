@@ -1,5 +1,6 @@
 assets/src/
 assets/build/
+assets/archives/
 cache/
 artifacts/
 .DS_STORE
