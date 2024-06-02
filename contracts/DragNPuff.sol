@@ -15,7 +15,7 @@ contract DragNPuff is ERC721, IERC4906, Ownable, AccessControl, EIP712, ERC721Vo
     uint256 private _nextTokenId;
     string private _baseTokenURI;
 
-    constructor(string calldata name, string calldata symbol, address initialOwner)
+    constructor(string memory name, string memory symbol, address initialOwner)
         ERC721(name, symbol)
         Ownable(initialOwner)
         EIP712(name, "1")
@@ -25,7 +25,7 @@ contract DragNPuff is ERC721, IERC4906, Ownable, AccessControl, EIP712, ERC721Vo
         _grantRole(MINTER_ROLE, initialOwner);
     }
 
-    function _baseURI() internal pure override returns (string memory) {
+    function _baseURI() internal view override returns (string memory) {
         return _baseTokenURI;
     }
 
@@ -51,7 +51,7 @@ contract DragNPuff is ERC721, IERC4906, Ownable, AccessControl, EIP712, ERC721Vo
     }
 
     function exists(uint256 tokenId) public view returns (bool) {
-        return _exists(tokenId);
+        return _ownerOf(tokenId) != address(0);
     }
 
     function clock() public view override returns (uint48) {
@@ -64,6 +64,15 @@ contract DragNPuff is ERC721, IERC4906, Ownable, AccessControl, EIP712, ERC721Vo
     }
 
     // The following functions are overrides required by Solidity.
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(AccessControl, ERC721, IERC165)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
 
     function _update(address to, uint256 tokenId, address auth)
         internal
