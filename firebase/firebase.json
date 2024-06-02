@@ -21,7 +21,30 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ]
+    ],
+    "trailingSlash": false,
+      "rewrites": [
+        {
+          "source": "/images/*.@(png)",
+          "function": "api"
+        },
+        {
+          "source": "/meta/**",
+          "function": "api"
+        },
+        {
+          "source": "/thumbs/**",
+          "function": "api"
+        },
+        {
+          "source": "/api/**",
+          "function": "api"
+        },
+        {
+          "source": "/random.png",
+          "function": "api"
+        }
+      ]
   },
   "storage": {
     "rules": "storage.rules"
