@@ -4,6 +4,7 @@ assets/archives/
 cache/
 artifacts/
 .DS_STORE
+firebase/functions/dragn/meta/
 
 # Logs
 logs
