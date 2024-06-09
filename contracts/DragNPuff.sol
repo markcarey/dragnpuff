@@ -15,11 +15,12 @@ contract DragNPuff is ERC721, IERC4906, Ownable, AccessControl, EIP712, ERC721Vo
     uint256 private _nextTokenId;
     string private _baseTokenURI;
 
-    constructor(string memory name, string memory symbol, address initialOwner)
+    constructor(string memory name, string memory symbol, string memory baseUri, address initialOwner)
         ERC721(name, symbol)
         Ownable(initialOwner)
         EIP712(name, "1")
     {
+        _baseTokenURI = baseUri;
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MANAGER_ROLE, initialOwner);
@@ -29,9 +30,12 @@ contract DragNPuff is ERC721, IERC4906, Ownable, AccessControl, EIP712, ERC721Vo
     function _baseURI() internal view override returns (string memory) {
         return _baseTokenURI;
     }
+    function baseURI() public view returns (string memory) {
+        return _baseTokenURI;
+    }
 
-    function setBaseURI(string memory baseTokenURI) public onlyRole(MANAGER_ROLE) {
-        _baseTokenURI = baseTokenURI;
+    function setBaseUri(string calldata baseUri) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        _baseTokenURI = baseUri;
         emit BatchMetadataUpdate(0, type(uint256).max);
     }
 

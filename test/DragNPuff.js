@@ -10,6 +10,7 @@ const { ethers } = require("hardhat");
 const erc721 = {
   "name": "PuffN'Drag",
   "symbol": "PUFFN",
+  "baseURI": "https://puffn.xyz/meta/"
 }; // change these for production deployment
 const fees = {
   "holder": ethers.parseEther("0.0042"),
@@ -36,7 +37,7 @@ describe("DragNPuff NFT", function () {
     const token = await Token.deploy(erc20Mock.supply, erc20Mock.name, erc20Mock.symbol);
 
     const NFT = await ethers.getContractFactory("DragNPuff");
-    const nft = await NFT.deploy(erc721.name, erc721.symbol, process.env.DRAGNPUFF_OWNER);
+    const nft = await NFT.deploy(erc721.name, erc721.symbol, erc721.baseURI, process.env.DRAGNPUFF_OWNER);
 
     const Minter = await ethers.getContractFactory("ERC721Minter");
     const minter = await Minter.deploy(nft.target, token.target, fees.holder, fees.public);
