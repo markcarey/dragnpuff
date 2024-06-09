@@ -5,6 +5,7 @@ cache/
 artifacts/
 .DS_STORE
 firebase/functions/dragn/meta/
+ignition/deployments/
 
 # Logs
 logs
