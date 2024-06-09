@@ -19,6 +19,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.2",
     "dot-env": "^0.0.1",
+    "dotenv": "^16.4.5",
     "ethers": "^6.1.0"
   },
   "devDependencies": {
