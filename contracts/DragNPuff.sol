@@ -21,6 +21,7 @@ contract DragNPuff is ERC721, IERC4906, Ownable, AccessControl, EIP712, ERC721Vo
         EIP712(name, "1")
     {
         _baseTokenURI = baseUri;
+        _nextTokenId = 1;
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MANAGER_ROLE, initialOwner);
@@ -52,7 +53,7 @@ contract DragNPuff is ERC721, IERC4906, Ownable, AccessControl, EIP712, ERC721Vo
     }
 
     function totalSupply() public view returns (uint256) {
-        return _nextTokenId;
+        return _nextTokenId - 1;
     }
 
     function exists(uint256 tokenId) public view returns (bool) {
