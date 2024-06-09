@@ -63,8 +63,6 @@ describe("DragNPuff NFT", function () {
 
   describe("Minter", function () {
 
-    
-
     it("should revert trying to mint one NFT because public mint not open", async function () {
       const { nft, minter, token, owner, holder } = await loadFixture(deployNFTandMinterFixture);
       expect(await minter.mint(process.env.DRAGNPUFF_OWNER,  { value: fees.public }))
@@ -161,5 +159,51 @@ describe("DragNPuff NFT", function () {
     }); // end it
 
   }); // end describe Minter
+
+  describe("Admin Stuff", function () {
+
+    it("should set BaseURI on NFT contract", async function () {
+      const { nft, minter, token, owner, holder } = await loadFixture(deployNFTandMinterFixture);
+      expect(await nft.setBaseUri("https://puffntest.xyz/meta/"))
+        .to.emit(nft, "BatchMetadataUpdate");
+    }); // end it
+
+    it("should set Minter role on NFT contract", async function () {
+      const { nft, minter, token, owner, holder } = await loadFixture(deployNFTandMinterFixture);
+      expect(await nft.grantRole(await nft.MINTER_ROLE(), holder.address))
+        .to.emit(nft, "RoleGranted");
+    }); // end it
+
+    it("should revoke Minter role on NFT contract", async function () {
+      const { nft, minter, token, owner, holder } = await loadFixture(deployNFTandMinterFixture);
+      expect(await nft.revokeRole(await nft.MINTER_ROLE(), holder.address))
+        .to.emit(nft, "RoleRevoked");
+    }); // end it
+
+    it("should set holder mint fee on Minter contract", async function () {
+      const { nft, minter, token, owner, holder } = await loadFixture(deployNFTandMinterFixture);
+      var newFee = ethers.parseEther("0.0043");
+      const tx = await minter.setMintFeeHolder(ethers.parseEther("0.0043"));
+      await tx.wait();
+      expect(await minter.mintFeeHolder()).to.equal(newFee);
+    }); // end it
+
+    it("should set public mint fee on Minter contract", async function () {
+      const { nft, minter, token, owner, holder } = await loadFixture(deployNFTandMinterFixture);
+      var newFee = ethers.parseEther("0.0070");
+      const tx = await minter.setMintFeePublic(ethers.parseEther("0.0070"));
+      await tx.wait();
+      expect(await minter.mintFeePublic()).to.equal(newFee);
+    }); // end it
+
+    it("should setm minHoldings on Minter contract", async function () {
+      const { nft, minter, token, owner, holder } = await loadFixture(deployNFTandMinterFixture);
+      var newHoldings = ethers.parseEther("420000");
+      const tx = await minter.setMinHoldings(newHoldings);
+      await tx.wait();
+      expect(await minter.minHoldings()).to.equal(newHoldings);
+    }); // end it
+
+  });
 
 }); // end describe DragNPuff NFT

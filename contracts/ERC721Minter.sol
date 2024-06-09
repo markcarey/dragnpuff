@@ -45,11 +45,14 @@ contract ERC721Minter is AccessControl {
     function setMintFeePublic(uint256 _mintFeePublic) public onlyRole(DEFAULT_ADMIN_ROLE) {
         mintFeePublic = _mintFeePublic;
     }
+    function setMinHoldings(uint256 _minHoldings) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        minHoldings = _minHoldings;
+    }
 
     function startPublicMint() public onlyRole(DEFAULT_ADMIN_ROLE) {
         publicMintingEnabled = true;
     }
-    
+
     function _mintFee() internal view returns (uint256) {
         if (tokenContract.balanceOf(msg.sender) >= minHoldings) {
             return mintFeeHolder;
