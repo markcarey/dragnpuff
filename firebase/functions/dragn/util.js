@@ -1,6 +1,13 @@
 const {getStorage} = require("firebase-admin/storage");
 const {getFirestore} = require("firebase-admin/firestore");
-const logger = require("firebase-functions/logger");
+const {
+    log,
+    info,
+    debug,
+    warn,
+    error,
+    write,
+} = require("firebase-functions/logger");
 
 //const fetch = require("node-fetch");
 const fetch = require("node-fetch");
@@ -12,8 +19,10 @@ const erc20JSON = require("./abis/IERC20.json");
 
 // TODO: change these for production
 const MIN_HOLDINGS = ethers.BigNumber.from("100000000000000000000000"); // 100,000 NOM
-const HOLDER_PRICE = ethers.utils.parseEther("0.000042");
-const PUBLIC_PRICE = ethers.utils.parseEther("0.000069");
+const HOLDER_PRICE_STRING = "0.000042";
+const HOLDER_PRICE = ethers.utils.parseEther(HOLDER_PRICE_STRING);
+const PUBLIC_PRICE_STRING = "0.000069"
+const PUBLIC_PRICE = ethers.utils.parseEther(PUBLIC_PRICE_STRING);
 const PUBLIC_MINT = false;
 
 const sleep = (milliseconds) => {
@@ -31,7 +40,9 @@ module.exports = {
     "constants": {  
         "MIN_HOLDINGS": MIN_HOLDINGS,
         "HOLDER_PRICE": HOLDER_PRICE,
+        "HOLDER_PRICE_STRING": HOLDER_PRICE_STRING,
         "PUBLIC_PRICE": PUBLIC_PRICE,
+        "PUBLIC_PRICE_STRING": PUBLIC_PRICE_STRING,
         "PUBLIC_MINT": PUBLIC_MINT
     }, // constants
 
@@ -95,8 +106,34 @@ module.exports = {
         }); // return new Promise
     }, // isMinted
 
+    "getTokenIdFromTransactionId": async function(transactionId) {
+        const util = module.exports;
+        return new Promise(async function(resolve, reject) {
+            // get the transaction id
+            var tokenId = 0;
+            const provider = new ethers.providers.JsonRpcProvider(process.env.API_URL_BASE);
+            const tx = await provider.getTransaction(transactionId);
+            const recipient = tx.from;
+            const contract = new ethers.Contract(process.env.DRAGNPUFF_CONTRACT, DragNPuffJSON.abi, provider);
+            let minted = contract.filters.Transfer(null, recipient);
+            var start = 15664844;
+            if (tx.blockNumber) {
+                start = tx.blockNumber;
+            }
+            let mintedLogs = await contract.queryFilter(minted, start, "latest");
+            console.log(JSON.stringify(mintedLogs));
+            for (let m = 0; m < mintedLogs.length; m++) {
+                console.log("minted", JSON.stringify(mintedLogs[m]));
+                tokenId = parseInt(mintedLogs[m].args[2]);
+                console.log("tokenId from logs is " + parseInt(tokenId));
+            }
+            return resolve(parseInt(tokenId));
+        }); // return new Promise
+    }, // getTokenIdFromTransactionId
+
     "frameHTML": async function(frame) {
-        console.log("build html for frame", JSON.stringify(frame));
+        //console.log("build html for frame", JSON.stringify(frame));
+        log("frame", frame);
         const util = module.exports;
         return new Promise(async function(resolve, reject) { 
             var html = '';
@@ -135,7 +172,7 @@ module.exports = {
             } else if ("textField" in frame) {
                 textField = `<meta name="fc:frame:input:text" content="${frame.textField}" />`;
             } // if textField
-            console.log("frame.image", frame.image);
+            log("frame.image", frame.image);
             if ("square" in frame) {
                 if (frame.square == true) {
                     square = `<meta name="fc:frame:image:aspect_ratio" content="1:1" />`;
@@ -178,7 +215,7 @@ module.exports = {
                 </body>
 
                 </html>`;
-            console.log("buttons", buttons);
+            log("buttons", buttons);
             return resolve(html);
         }); // return new Promise
     }, // frameHTML

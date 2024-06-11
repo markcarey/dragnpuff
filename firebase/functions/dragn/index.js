@@ -39,8 +39,12 @@ api.post(['/api/frames/nom'], async function (req, res) {
 
 api.post(['/api/txn/mint/:address/:quantity'], async function (req, res) {
   console.log("start POST /api/txn/mint/:address/:quantity path", req.path);
-  const address = req.params.address;
+  var address = req.params.address;
   const quantity = parseInt(req.params.quantity);
+  if ("address" in req.body.untrustedData) {
+    // connected wallet address
+    address = req.body.untrustedData.address;
+  }
   const tx = await actions.mintTxn(address, quantity);
   res.json(tx);
 }); // POST /api/txn/mint/:address/:quantity
@@ -225,7 +229,7 @@ api.get(['/thumbs/:size(1024|512|256|128|64)/:id.png'], async function (req, res
   const size = parseInt(req.params.size);
   const storage = getStorage();
   const bucket = storage.bucket("dragn-puff.appspot.com");
-  const file = bucket.file(`images/${id}.png`);
+  const file = bucket.file(`thumbs/${size}/${id}.png`);
   const exists = await file.exists();
   if (!exists[0]) {
     res.status(404).send('Not found');
@@ -234,20 +238,13 @@ api.get(['/thumbs/:size(1024|512|256|128|64)/:id.png'], async function (req, res
   // Download file into memory from bucket.
   const downloadResponse = await file.download();
   const imageBuffer = downloadResponse[0];
-  logger.log("Image downloaded!");
+  //logger.log("Image downloaded!");
 
-  // Generate a thumbnail using sharp.
-  const thumbnailBuffer = await sharp(imageBuffer).resize({
-    "width": size,
-    "height": size
-  }).toBuffer();
-  logger.log("Thumbnail created");
-
-    // Send the thumbnail in the response.
-    res.set('Cache-Control', 'public, max-age=3600, s-maxage=86200');
+    // TODO: Send cache in the response.
+    //res.set('Cache-Control', 'public, max-age=3600, s-maxage=86200');
     res.set('Content-Type', 'image/png');
     // TODO: Set cache control headers
-    res.send(thumbnailBuffer);
+    res.send(imageBuffer);
 }); // GET /thumbs/:id    
 
 api.get(['/random.png'], async function (req, res) {

@@ -1,6 +1,14 @@
 const {getStorage} = require("firebase-admin/storage");
 const {getFirestore} = require("firebase-admin/firestore");
-const logger = require("firebase-functions/logger");
+const {
+    log,
+    info,
+    debug,
+    warn,
+    error,
+    write,
+} = require("firebase-functions/logger");
+  
 
 const ethers = require("ethers");
 
@@ -23,6 +31,8 @@ module.exports = {
                 "method": "quantity"
                 };
             }
+            //console.log("mint: state", JSON.stringify(state));
+            log("mint: state", state);
             // get fid:
             const fid = req.body.untrustedData.fid;
             // get cast author fid
@@ -46,18 +56,20 @@ module.exports = {
                 var priceEth;
                 var canMint = false;
                 if ( util.isHODLer(address) ) {
-                    priceEth = ethers.utils.parseEther(util.constants.HOLDER_PRICE);
-                    frame.imageText = `You have 100K $NOM: Mint or ${priceEth.tofixed(6)} ETH each`;
+                    priceEth = util.constants.HOLDER_PRICE_STRING;
+                    //priceEth = ethers.utils.parseEther(util.constants.HOLDER_PRICE);
+                    frame.imageText = `You have 100K $NOM: Mint for ${priceEth} ETH each`;
                     canMint = true;
                 } else {
-                    priceEth = ethers.utils.parseEther(util.constants.PUBLIC_PRICE);
+                    priceEth = util.constants.PUBLIC_PRICE_STRING;
                     if (util.constants.PUBLIC_MINT) {
-                        frame.imageText = `Mint for ${priceEth.tofixed(6)} ETH each`;
+                        frame.imageText = `Mint for ${priceEth} ETH each`;
                         canMint = true;
                     } else {
                         frame.imageText = `Minting is open for 100K $NOM holders only`;
                     }
                 }
+                state.priceEth = priceEth;
                 if (canMint) {
                     frame.textField = "Enter a quantity to mint";
                     frame.buttons = [
@@ -75,9 +87,89 @@ module.exports = {
                         }
                     ];
                 }
+                state.method = "mint";
+            } else if(state.method == "mint") {
+                // quanity is in req.body.untrustedData.input
+                state.quantity = parseInt(req.body.untrustedData.inputText);
+                frame.imageText = `Minting ${state.quantity} for ${state.priceEth} ETH each`;
+                frame.buttons = [
+                    {
+                        "label": "Mint",
+                        "action": "tx",
+                        "target": `https://api.dragnpuff.xyz/api/txn/mint/${state.address}/${state.quantity}`
+                    }
+                ];
+                state.method = "minted";
+            } else if (state.method == "minted") {
+                
+
+                if ("transactionId" in state) {
+                    // they minted
+                    if ("tokenId" in state) {
+                      // no-op
+                    } else {
+                      // get tokenId from transactionId
+                      state.tokenId = await util.getTokenIdFromTransactionId(state.transactionId);
+                      console.log("mint: state.tokenId", state.tokenId);
+                    } // if tokenId
+                    if (state.tokenId > 0) {
+                      // get the metadata
+                      try {
+                        frame.image = `https://api.dragnpuff.xyz/thumbs/1024/${state.tokenId}`;
+                        frame.buttons = [
+                          {
+                            "label": "Cast It!",
+                            "action": "link",
+                            "target": `https://warpcast.com/~/compose?text=${encodeURIComponent(`I just minted DragN'Puff #${state.tokenId}`)}&embeds[]=https://dragnpuff.xyz/token/${state.tokenId}`
+                          }
+                        ];
+                        state.method = "done";
+                      } catch (e) {
+                        frame.imageText = `Mint in progress...`;
+                        frame.buttons = [
+                          {
+                            "label": "Refresh",
+                            "action": "post",
+                          }
+                        ];
+                        state.method = "minted";
+                      } // try
+                    } else {
+                      frame.imageText = `Mint in progress...`;
+                      frame.buttons = [
+                        {
+                          "label": "Refresh",
+                          "action": "post",
+                        }
+                      ];
+                      state.method = "minted";
+                    } // if transactionId
+                  } else {
+                    if ("transactionId" in req.body.untrustedData) {
+                      state.transactionId = req.body.untrustedData.transactionId;
+                      frame.imageText = `Mint in progress...`;
+                      frame.buttons = [
+                        {
+                          "label": "Refresh",
+                          "action": "post",
+                        }
+                      ];
+                      state.method = "minted";
+          
+                      if (castFid != 8685) {
+                        // cast not authored by @markcarey or TODO: update this later from referral credit
+
+                      } // if castFid
+                    } // if transactionId
+                } // if transactionId
             } // if state.method
             frame.state = state;
-            frame.image = `https://api.dragnpuff.xyz/api/frimg/${encodeURIComponent(frame.imageText)}.png`;
+            if ("image" in frame) {
+                // no-op
+              } else {
+                frame.image = `https://frm.lol/api/dragnpuff/frimg/${encodeURIComponent(frame.imageText)}.png`;
+                delete frame.imageText;
+            } // if image
             return resolve(frame);
         }); // return new Promise
     }, // mint
