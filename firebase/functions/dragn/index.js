@@ -8,6 +8,7 @@ const cors = require("cors");
 const sharp = require("sharp");
 
 const util = require("./util");
+const actions = require("./actions");
 
 const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
@@ -26,8 +27,8 @@ api.get(['/testing'], async function (req, res) {
 api.post(['/api/frames/mint'], async function (req, res) {
   console.log("start POST /api/frames/mint path", req.path);
   const frame = await actions.mint(req);
-  // TODO: getFrameHTML and return
-
+  const html = await util.frameHTML(frame);
+  res.send(html);
 }); // POST /api/frames/mint
 
 api.post(['/api/frames/nom'], async function (req, res) {
@@ -35,6 +36,31 @@ api.post(['/api/frames/nom'], async function (req, res) {
   const html = util.nomSwapFrameHTML();
   res.send(html);
 }); // POST /api/frames/mint
+
+api.post(['/api/txn/mint/:address/:quantity'], async function (req, res) {
+  console.log("start POST /api/txn/mint/:address/:quantity path", req.path);
+  const address = req.params.address;
+  const quantity = parseInt(req.params.quantity);
+  const tx = await actions.mintTxn(address, quantity);
+  res.json(tx);
+}); // POST /api/txn/mint/:address/:quantity
+
+api.get('/api/frimg/:imageText.png', async function (req, res) {
+  // url decode imageText
+  const imageText = decodeURIComponent(req.params.imageText);
+  console.log("imageText", imageText);
+  const image = await util.imageFromText(imageText)
+    .catch((e) => { return res.status(404).send('Not found'); });
+  //console.log("image", image);
+  const img = Buffer.from(image.replace("data:image/png;base64,",""), 'base64');
+  // increase cache
+  res.set('Cache-Control', 'public, max-age=3600, s-maxage=86200');
+  res.writeHead(200, {
+    'Content-Type': 'image/png',
+    'Content-Length': img.length
+  });
+  return res.end(img);
+}); // GET /api/frimg/:imageText.png
 
 api.get(['/api/importmeta'], async function (req, res) {
   var start = parseInt(req.query.start);

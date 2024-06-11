@@ -2,6 +2,7 @@ const {getStorage} = require("firebase-admin/storage");
 const {getFirestore} = require("firebase-admin/firestore");
 const logger = require("firebase-functions/logger");
 
+//const fetch = require("node-fetch");
 const fetch = require("node-fetch");
 const ethers = require("ethers");
 
@@ -15,6 +16,15 @@ const HOLDER_PRICE = ethers.utils.parseEther("0.000042");
 const PUBLIC_PRICE = ethers.utils.parseEther("0.000069");
 const PUBLIC_MINT = false;
 
+const sleep = (milliseconds) => {
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
+};
+
+function hexStringToUint8Array(hexstring) {
+    return new Uint8Array(
+        hexstring.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+    );
+}
 
 module.exports = {
 
@@ -71,6 +81,108 @@ module.exports = {
         }); // return new Promise
     }, // mintTxnJSON
 
+    "isMinted": async function(tokenId) {
+        const util = module.exports;
+        return new Promise(async function(resolve, reject) {
+            const provider = new ethers.providers.JsonRpcProvider(process.env.API_URL_BASE);
+            const nft = new ethers.Contract(process.env.DRAGNPUFF_CONTRACT, DragNPuffJSON.abi, provider);
+            var minted = false;
+            const owner = await nft.ownerOf(tokenId);
+            if (owner != ethers.constants.AddressZero) {
+                minted = true;
+            }
+            return resolve(minted);
+        }); // return new Promise
+    }, // isMinted
+
+    "frameHTML": async function(frame) {
+        console.log("build html for frame", JSON.stringify(frame));
+        const util = module.exports;
+        return new Promise(async function(resolve, reject) { 
+            var html = '';
+            var h1 = frame.id;
+            if ("h1" in frame) {
+                h1 = frame.h1;
+            }
+            var buttons = '';
+            var textField = '';
+            // for loop through frame.buttons array
+            if ("buttons" in frame) {
+                for (let i = 0; i < frame.buttons.length; i++) {
+                  buttons += `<meta name="fc:frame:button:${i+1}" content="${frame.buttons[i].label}" />`;
+                  buttons += `<meta name="fc:frame:button:${i+1}:action" content="${frame.buttons[i].action}" />`;
+                  if (frame.buttons[i].action == "link" || frame.buttons[i].action == "tx") {
+                    buttons += `<meta name="fc:frame:button:${i+1}:target" content="${frame.buttons[i].target}" />`;
+                  }
+                  if ("postUrl" in frame.buttons[i]) {
+                    buttons += `<meta name="fc:frame:button:${i+1}:post_url" content="${frame.buttons[i].postUrl}" />`;
+                  }
+                }
+            }
+            var square = "";
+            if ("image" in frame) {
+                // do nothing, assumes image is already a data URI or URL
+            } else {
+                frame.square = true;
+                if ("imageText" in frame) {
+                    frame.image = await util.imageFromText(frame.imageText);
+                } else {
+                    frame.image = await util.imageFromText("404 - Image not found");
+                } // if imageText
+            } // if image
+            if ("inputText" in frame) {
+                textField = `<meta name="fc:frame:input:text" content="${frame.inputText}" />`;
+            } else if ("textField" in frame) {
+                textField = `<meta name="fc:frame:input:text" content="${frame.textField}" />`;
+            } // if textField
+            console.log("frame.image", frame.image);
+            if ("square" in frame) {
+                if (frame.square == true) {
+                    square = `<meta name="fc:frame:image:aspect_ratio" content="1:1" />`;
+                } // if square
+            } // if square
+            var state = "";
+            if ("state" in frame) {
+                const encodedState = encodeURIComponent(JSON.stringify(frame.state));
+                state = `<meta name="fc:frame:state" content="${encodedState}" />`;
+            }
+            html = `<!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <title>${frame.id}</title>
+                    <meta charSet="utf-8" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1" />
+                    <meta name="fc:frame" content="vNext" />
+                    <meta name="fc:frame:image" content="${frame.image}" />
+                    <meta name="fc:frame:post_url" content="${frame.postUrl}" />
+                    ${buttons}
+                    ${square}
+                    ${textField}
+                    ${state}
+                    <meta name="og:image" content="${frame.image}" />
+                    <meta name="og:title" content="${frame.id}" />
+                </head>
+
+                <body>
+                    <h1>${h1}</h1>
+                    <div>
+                    <img src="${frame.image}" width="400" />
+                    </div>
+                    <script>
+                        // redirect to wc after 2 seconds
+                        setTimeout(function() {
+                            window.location.href = 'https://warpcast.com/~/channel/nomadicframe';
+                        }
+                        , 2000);
+                    </script>
+                </body>
+
+                </html>`;
+            console.log("buttons", buttons);
+            return resolve(html);
+        }); // return new Promise
+    }, // frameHTML
+
     "farcasterVerifiedAddress": async function(user) {
         var address;
         if ("verified_addresses" in user) {
@@ -80,6 +192,33 @@ module.exports = {
         } // if verified_addresses
         return address;
     }, // farcasterVerifiedAddress
+
+    "imageFromText": async function(text) {
+        return new Promise(async function(resolve, reject) { 
+            const bgImage = await getCanvasImage({"url": `https://api.dragnpuff.xyz/img/bg.png`});
+            const textToImage = new UltimateTextToImage(text, {
+                width: 1024,
+                height: 1024,
+                fontSize: 72,
+                lineHeight: 96,
+                bold: 400,
+                fontWeight: 700,
+                marginTop: 210,
+                borderSize: 0,
+                fontColor: "#ffffff",
+                borderColor: "#A36EFD",
+                fontFamily: "GeistMono",
+                backgroundColor: "#000000",
+                align: "center",
+                valign: "top",
+                images: [
+                    { canvasImage: bgImage, layer: 0, repeat: "fit", x: 0, y: 0, width: 1024, height: 1024}
+                ]
+            }).render().toBuffer("image/png").toString("base64");
+            console.log(textToImage);
+            return resolve(`data:image/png;base64,${textToImage}`);
+        }); // return new Promise
+    }, // imageFromText
 
     "validate": async function(req) {
         return new Promise(async function(resolve, reject) { 

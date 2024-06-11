@@ -2,9 +2,9 @@ const {getStorage} = require("firebase-admin/storage");
 const {getFirestore} = require("firebase-admin/firestore");
 const logger = require("firebase-functions/logger");
 
-const fetch = require("node-fetch");    
-const { ethers } = require("hardhat");
-const e = require("express");
+const ethers = require("ethers");
+
+const util = require("./util");
 
 module.exports = {
 
@@ -82,10 +82,10 @@ module.exports = {
         }); // return new Promise
     }, // mint
 
-    "mintTxn": async function(req) {
+    "mintTxn": async function(address, quantity) {
         return new Promise(async function(resolve, reject) {
-            // TODO: return mint txn json
-
+            const txn = await util.mintTxnJSON(address, quantity);  
+            return resolve(txn);
         }); // return new Promise
     }, // mintTxn
 
