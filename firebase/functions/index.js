@@ -22,6 +22,10 @@ exports.helloWorld = onRequest((req, res) => {
    res.send("Hello from Firebase!");
 });
 
-exports.api = onRequest((req, res) => {
+exports.api = onRequest({
+    timeoutSeconds: 60,
+    memory: "1GiB",
+  },
+  (req, res) => {
     return dragn.api(req, res);
 }); // api
