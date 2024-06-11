@@ -41,6 +41,10 @@
           "function": "api"
         },
         {
+          "source": "/token/**",
+          "function": "api"
+        },
+        {
           "source": "/random.png",
           "function": "api"
         }

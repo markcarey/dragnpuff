@@ -247,6 +247,74 @@ api.get(['/thumbs/:size(1024|512|256|128|64)/:id.png'], async function (req, res
     res.send(imageBuffer);
 }); // GET /thumbs/:id    
 
+api.get(['/token/:id'], async function (req, res) {
+  console.log("start GET /token/:id path", req.path);
+  const id = req.params.id;
+  const html = `
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DragN'Puff #${id}</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DragN'Puff #${id}">
+    <link rel="icon" type="image/png" href="/img/favicon.png">
+
+    <meta name="fc:frame" content="vNext" />
+    <meta name="fc:frame:image" content="https://api.dragnpuff.xyz/thumbs/1024/${id}.png" />
+    <meta name="fc:frame:post_url" content="https://api.dragnpuff.xyz/api/frames/mint" />
+    <meta name="fc:frame:button:1" content="Mint Yours" />
+    <meta name="fc:frame:button:1:action" content="post" />
+    <meta name="fc:frame:image:aspect_ratio" content="1:1" />
+    <meta name="og:image" content="https://api.dragnpuff.xyz/thumbs/1024/${id}.png">
+    <meta name="og:title" content="DragN'Puff #${id}" />
+
+    <style>
+        @font-face {
+            font-family: SartoshiScript;
+            src: url(/css/SartoshiScript-Regular.otf);
+        }
+        body {
+            font-family: SartoshiScript;
+            text-align: center;
+        }
+        h1 {
+            font-size: 3em;
+            margin: 0;
+            font-weight: 800;
+        }
+        h3 {
+            font-size: 1.5em;
+            margin: 0;
+            font-weight: 400;
+        }
+        img {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }   
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>DragN'Puff #${id}</h1>
+        </div>
+        <div>
+            <a href="https://warpcast.com/~/channel/nomadicframe"><img src="https://api.dragnpuff.xyz/thumbs/1024/${id}.png" alt="DragN'Puff #${id}" /></a>
+        </div>
+        <div class="footer">
+            <p><span style="letter-spacing:0px">@~</span> 2024 DragN'Puff</p>
+        </div>
+    </div>
+</html>
+  `;
+  // TODO: set cache
+  //res.set('Cache-Control', 'public, max-age=60, s-maxage=120');
+  res.send(html);
+});
+
 api.get(['/random.png'], async function (req, res) {
     console.log("start GET /random.png path", req.path);
     // random id between 1 and 18957

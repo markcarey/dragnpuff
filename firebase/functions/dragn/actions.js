@@ -115,7 +115,7 @@ module.exports = {
                     if (state.tokenId > 0) {
                       // get the metadata
                       try {
-                        frame.image = `https://api.dragnpuff.xyz/thumbs/1024/${state.tokenId}`;
+                        frame.image = `https://api.dragnpuff.xyz/thumbs/1024/${state.tokenId}.png`;
                         frame.buttons = [
                           {
                             "label": "Cast It!",
