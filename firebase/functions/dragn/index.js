@@ -7,6 +7,8 @@ const api = express();
 const cors = require("cors");
 const sharp = require("sharp");
 
+const util = require("./util");
+
 const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
 };
@@ -20,6 +22,19 @@ api.get(['/testing'], async function (req, res) {
   res.json({ message: 'Hello DragNs' });
   //}
 }); // GET /testing
+
+api.post(['/api/frames/mint'], async function (req, res) {
+  console.log("start POST /api/frames/mint path", req.path);
+  const frame = await actions.mint(req);
+  // TODO: getFrameHTML and return
+
+}); // POST /api/frames/mint
+
+api.post(['/api/frames/nom'], async function (req, res) {
+  console.log("start POST /api/frames/mint path", req.path);
+  const html = util.nomSwapFrameHTML();
+  res.send(html);
+}); // POST /api/frames/mint
 
 api.get(['/api/importmeta'], async function (req, res) {
   var start = parseInt(req.query.start);
