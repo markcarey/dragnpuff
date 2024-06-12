@@ -98,9 +98,10 @@ module.exports = {
             const provider = new ethers.providers.JsonRpcProvider(process.env.API_URL_BASE);
             const nft = new ethers.Contract(process.env.DRAGNPUFF_CONTRACT, DragNPuffJSON.abi, provider);
             var minted = false;
-            const owner = await nft.ownerOf(tokenId);
-            if (owner != ethers.constants.AddressZero) {
-                minted = true;
+            try {
+                minted = await nft.exists(tokenId);
+            } catch (err) {
+                console.error(err);
             }
             return resolve(minted);
         }); // return new Promise
@@ -130,6 +131,24 @@ module.exports = {
             return resolve(parseInt(tokenId));
         }); // return new Promise
     }, // getTokenIdFromTransactionId
+
+    "sendCast": async function(cast) {
+        const util = module.exports;
+        return new Promise(async function(resolve, reject) {
+            var response = await fetch(`https://api.neynar.com/v2/farcaster/cast`, { 
+                method: 'POST', 
+                headers: {
+                    'Accept': 'application/json', 
+                    'Content-Type': 'application/json',
+                    'Api_key': process.env.NEYNAR_API_KEY
+                },
+                body: JSON.stringify(cast)
+            });
+            var castResult = await response.json();
+            console.log("neynar POST cast", JSON.stringify(castResult));
+            return resolve(castResult);
+        }); // return new Promise
+    }, // sendCast
 
     "frameHTML": async function(frame) {
         //console.log("build html for frame", JSON.stringify(frame));

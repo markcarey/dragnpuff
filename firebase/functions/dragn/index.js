@@ -222,10 +222,67 @@ api.get(['/api/promotedemote/counts'], async function (req, res) {
   res.json({ promoted: promoted, demoted: demoted, top: top});
 }); // GET /api/promotedemote/counts
 
+api.get(['/meta/:id'], async function (req, res) {
+  console.log("start GET /meta/:id path", req.path);
+  const id = req.params.id;
+  const isMinted = await util.isMinted(id);
+  if (!isMinted) {
+    return res.status(404).send('Not found');
+  }
+  const storage = getStorage();
+  const bucket = storage.bucket("dragn-puff.appspot.com");
+  const file = bucket.file(`meta/${id}.json`);
+  const exists = await file.exists();
+  if (!exists[0]) {
+    res.status(404).send('Not found');
+    return;
+  }
+  // Download file into memory from bucket.
+  const downloadResponse = await file.download();
+  const metadata = downloadResponse[0];
+  //logger.log("Image downloaded!");
+
+  res.set('Content-Type', 'application/json');
+  res.set('Content-Length', metadata.length);
+  // TODO: Set cache control headers
+  //res.set('Cache-Control', 'public, max-age=3600, s-maxage=86200');
+  res.send(metadata);
+}); // GET /meta/:id   
+
+api.get(['/images/:id.png'], async function (req, res) {
+  console.log("start GET /images/:id.png path", req.path);
+  const id = req.params.id;
+  const isMinted = await util.isMinted(id);
+  if (!isMinted) {
+    return res.status(404).send('Not found');
+  }
+  const storage = getStorage();
+  const bucket = storage.bucket("dragn-puff.appspot.com");
+  const file = bucket.file(`images/${id}.png`);
+  const exists = await file.exists();
+  if (!exists[0]) {
+    res.status(404).send('Not found');
+    return;
+  }
+  // Download file into memory from bucket.
+  const downloadResponse = await file.download();
+  const imageBuffer = downloadResponse[0];
+  //logger.log("Image downloaded!");
+
+    // TODO: Send cache in the response.
+    //res.set('Cache-Control', 'public, max-age=3600, s-maxage=86200');
+    res.set('Content-Type', 'image/png');
+    // TODO: Set cache control headers
+    res.send(imageBuffer);
+}); // GET /images/:id   
 
 api.get(['/thumbs/:size(1024|512|256|128|64)/:id.png'], async function (req, res) {
   console.log("start GET /thumbs/:id.png path", req.path);
   const id = req.params.id;
+  const isMinted = await util.isMinted(id);
+  if (!isMinted) {
+    return res.status(404).send('Not found');
+  }
   const size = parseInt(req.params.size);
   const storage = getStorage();
   const bucket = storage.bucket("dragn-puff.appspot.com");
@@ -318,10 +375,10 @@ api.get(['/token/:id'], async function (req, res) {
 api.get(['/random.png'], async function (req, res) {
     console.log("start GET /random.png path", req.path);
     // random id between 1 and 18957
-    const id = Math.floor(Math.random() * 18957) + 1;
+    const id = Math.floor(Math.random() * 21180) + 1;
     const storage = getStorage();
     const bucket = storage.bucket("dragn-puff.appspot.com");
-    const file = bucket.file(`images/${id}.png`);
+    const file = bucket.file(`thumbs/1024/${id}.png`);
     const exists = await file.exists();
     if (!exists[0]) {
       res.status(404).send('Not found');
@@ -330,19 +387,12 @@ api.get(['/random.png'], async function (req, res) {
     // Download file into memory from bucket.
     const downloadResponse = await file.download();
     const imageBuffer = downloadResponse[0];
-    logger.log("Image downloaded!");
-  
-    // Generate a thumbnail using sharp.
-    const thumbnailBuffer = await sharp(imageBuffer).resize({
-      width: 512,
-      height: 512
-    }).toBuffer();
-    logger.log("Thumbnail created");
+    //logger.log("Image downloaded!");
   
       // Send the thumbnail in the response.
       res.set('Content-Type', 'image/png');
       // TODO: Set cache control headers
-      res.send(thumbnailBuffer);
+      res.send(imageBuffer);
   }); // GET /random.png    
 
 module.exports.api = api;
