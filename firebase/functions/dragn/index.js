@@ -353,8 +353,8 @@ api.get(['/thumbs/:size(1024|512|256|128|64)/:id.png'], async function (req, res
   const imageBuffer = downloadResponse[0];
   //logger.log("Image downloaded!");
 
-    // TODO: Send cache in the response.
-    //res.set('Cache-Control', 'public, max-age=3600, s-maxage=86200');
+    // Send cache in the response.
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=86200');
     res.set('Content-Type', 'image/png');
     // TODO: Set cache control headers
     res.send(imageBuffer);
@@ -518,5 +518,24 @@ api.get(['/random.png'], async function (req, res) {
       // TODO: Set cache control headers
       res.send(imageBuffer);
   }); // GET /random.png    
+
+  api.get(['/api/frame/urls'], async function (req, res) {
+    // return plaint text
+    res.set('Content-Type', 'text/plain');
+    res.send(`
+    https://dragnpuff.xyz\n
+    https://dragnpuff.xyz/mint/degen.gif/\n
+    https://dragnpuff.xyz/mint/nom.gif/\n
+    https://dragnpuff.xyz/mint/farcards.gif/\n
+    https://dragnpuff.xyz/mint/perl.gif/\n
+    https://dragnpuff.xyz/mint/drakula.gif/\n
+    https://dragnpuff.xyz/mint/mfers.gif/\n
+    https://dragnpuff.xyz/mint/nouns.gif/\n
+    https://dragnpuff.xyz/mint/shitters.gif/\n
+    https://dragnpuff.xyz/mint/ham.gif/\n
+    https://dragnpuff.xyz/mint/based.gif/\n
+    https://dragnpuff.xyz/mint/degen-gm.png/\n
+    `);
+  }); // GET /api/frame/urls
 
 module.exports.api = api;
