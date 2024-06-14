@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DragN'Puff</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DragN'Puff">
+    <link rel="icon" type="image/png" href="/img/favicon.png">
+
+    <meta name="fc:frame" content="vNext" />
+    <meta name="fc:frame:image" content="https://api.dragnpuff.xyz/img/dragnpuff.gif" />
+    <meta name="fc:frame:post_url" content="https://api.dragnpuff.xyz/tbd" />
+    <meta name="fc:frame:button:1" content="Coming Soon" />
+    <meta name="fc:frame:button:1:action" content="post" />
+    <meta name="fc:frame:image:aspect_ratio" content="1:1" />
+    <meta name="og:image" content="https://api.dragnpuff.xyz/img/dragnpuff.gif">
+    <meta name="og:title" content="DragN'Puff" />
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script>
+        const firebaseConfig = {
+          apiKey: "AIzaSyCV1Rd-y4QbCX0ytfglk64xFERNHr5Sdzc",
+          authDomain: "dragn-puff.firebaseapp.com",
+          projectId: "dragn-puff",
+          storageBucket: "dragn-puff.appspot.com",
+          messagingSenderId: "382014029297",
+          appId: "1:382014029297:web:9de10813c92a4afbc9d850"
+        };
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const { getCountFromServer } = firebase.firestore();
+    </script>
+
+
+
+
+
+    <style>
+        @font-face {
+            font-family: SartoshiScript;
+            src: url(/css/SartoshiScript-Regular.otf);
+        }
+        body {
+            font-family: SartoshiScript;
+            text-align: center;
+        }
+        h1 {
+            font-size: 3em;
+            margin: 0;
+            font-weight: 800;
+        }
+        h3 {
+            font-size: 1.5em;
+            margin: 0;
+            font-weight: 400;
+        }
+        img {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }   
+        .included {
+            background-color: #00FF00;
+        }
+        .excluded {
+            background-color: #FF0000;
+        }
+        .promoted {
+            background-color: #90EE90;
+        }
+        .demoted {
+            background-color: #FFC0CB;
+        }
+        .top {
+            background-color: #FFD700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>DragN'Puff</h1>
+        </div>
+        <div id="counts">
+            Promoted: <span id="promoted">0</span> | Demoted: <span id="demoted">0</span> | Top 100: <span id="top">0</span>
+        </div>
+        <div class="content">
+            <!-- select dropdowns for traits -->
+            <select id="eyes" class="trait">
+                <option value="">Eyes (Any)</option>
+                <option value="Normal">Normal</option>
+                <option value="Bloodshot">Bloodshot</option>
+                <option value="Aviator">Aviator</option>
+                <option value="Terminator">Terminator</option>
+                <option value="Rainbow">Rainbow</option>
+                <option value="Pixelated OG">Pixelated OG</option>
+                <option value="Sleep Mask">Sleep Mask</option>
+                <option value="Kevin">Kevin</option>
+                <option value="Noggles Red">Noggles Red</option>
+                <option value="Noggles Blue">Noggles Blue</option>
+                <option value="Noggles 3D">Noggles 3D</option>
+                <option value="Humanoid">Humanoid</option>
+            </select>
+            <select id="mouth" class="trait">
+                <option value="">Mouth (Any)</option>
+                <option value="Normal">Normal</option>
+                <option value="Puff">Puff</option>
+                <option value="Bubble Gum">Bubble Gum</option>
+                <option value="Blunt">Blunt</option>
+                <option value="Pipe">Pipe</option>
+                <option value="Tongue Ring">Tongue Ring</option>
+                <option value="Gold Tooth">Gold Tooth</option>
+                <option value="Diamond Grill">Diamond Grill</option>
+            </select>
+            <select id="headwear" class="trait">
+                <option value="">Headwear (Any)</option>
+                <option value="None">None</option>
+                <option value="Top Hat">Top Hat</option>
+                <option value="Mowhawk - Black">Mohawk - Black</option>
+                <option value="Mowhawk - Blue">Mohawk - Blue</option>
+                <option value="Mowhawk - Red">Mohawk - Red</option>
+                <option value="Mowhawk - Green">Mohawk - Green</option>
+                <option value="Mowhawk - Orange">Mohawk - Orange</option>
+                <option value="Mowhawk - Purple">Mohawk - Purple</option>
+                <option value="Mowhawk - Pink">Mohawk - Pink</option>
+                <option value="Mowhawk - White">Mohawk - White</option>
+                <option value="Mfer Cap">Mfer Cap</option>
+                <option value="Based Cap">Based Cap</option>
+                <option value="FC Arch Cap">FC Arch Cap</option>
+                <option value="Bowler Hat">Bowler Hat</option>
+                <option value="Do-Rag">Do-Rag</option>
+                <option value="Thug Bandana">Thug Bandana</option>
+                <option value="Rastacap">Rastacap</option>
+                <option value="Biker Helmet">Biker Helmet</option>
+                <option value="Headband">Headband</option>
+                <option value="Hippie Hair">Hippie Hair</option>
+                <option value="Rainbow Spinner">Rainbow Spinner</option>
+                <option value="Pepe Cap">Pepe Cap</option>
+                <option value="Afro">Afro</option>
+                <option value="Khaleesi">Khaleesi</option>
+                <option value="Mowhawk - Leopard">Mohawk - Leopard</option>
+                <option value="Mowhawk - Alien">Mohawk - Alien</option>
+                <option value="Mowhawk - Gold">Mohawk - Gold</option>
+                <option value="Crown">Crown</option>
+            </select>
+            <select id="piercings" class="trait">
+                <option value="">Piercings (Any)</option>
+                <option value="None">None</option>
+                <option value="Silver Hoops">Silver Hoops</option>
+                <option value="Brow Rings">Brow Rings</option>
+                <option value="Bull Ring">Bull Ring</option>
+                <option value="Diamond Studs">Diamond Studs</option>
+            </select>
+            <select id="clothes" class="trait">
+                <option value="">Clothes (Any)</option>
+                <option value="None">None</option>
+                <option value="$NOM Tee">$NOM Tee</option>
+                <option value="healTCHcare Tee">healTCHcare Tee</option>
+                <option value="Black Hoodie">Black Hoodie</option>
+                <option value="Wife Pleasers">Wife Pleasers</option>
+                <option value="Based Tee">Based Tee</option>
+                <option value="Degen Tee">Degen Tee</option>
+                <option value="Pew Pew Tee">Pew Pew Tee</option>
+                <option value="Alfafrens Tee">AlfaFrens Tee</option>
+                <option value="Ham Tee">Ham Tee</option>
+                <option value="Perl Jersey">Perl Jersey</option>
+                <option value="Bulls Market Jersey">Bulls Market Jersey</option>
+                <option value="Flannel">Flannel</option>
+                <option value="Leather Biker Vest">Leather Biker Vest</option>
+                <option value="Pancho">Pancho</option>
+                <option value="Orange DOC">Orange DOC</option>
+                <option value="Shitters Intl Tee">Shitters Intl Tee</option>
+                <option value="Drakula Tee">Drakula Tee</option>
+                <option value="FarCards Tee">Farcards Tee</option>
+                <option value="Mfer Hoodie">Mfer Hoodie</option>
+                <option value="Power Badge Tee">Power Badge Tee</option>
+                <option value="Yellow Tracksuit">Yellow Tracksuit</option>
+                <option value="Huey Heffy">Huey Heffy</option>
+                <option value="Astronaut">Astronaut</option>
+                <option value="Staying Alive">Staying Alive</option>
+                <option value="Thriller">Thriller</option>
+                <option value="Tie-Dye Tee">Tie-Dye Tee</option>
+                <option value="Tux">Tux</option>
+            </select>
+            <select id="skin" class="trait">
+                <option value="">Skin (Any)</option>
+                <option value="Normal">Normal</option>
+                <option value="Black">Black</option>
+                <option value="Blue">Blue</option>
+                <option value="White">White</option>
+                <option value="Purple">Purple</option>
+                <option value="Orange">Orange</option>
+                <option value="Pink">Pink</option>
+                <option value="Red">Red</option>
+                <option value="Tattooed">Tattooed</option>
+                <option value="Zebra">Zebra</option>
+                <option value="Leopard">Leopard</option>
+                <option value="Robot">Robot</option>
+                <option value="Alien">Alien</option>
+                <option value="Gold">Gold</option>
+            </select>
+            <select id="background" class="trait">
+                <option value="">Background (Any)</option>
+                <option value="Cyan">Cyan</option>
+                <option value="Pink">Pink</option>
+                <option value="Neon Green">Neon Green</option>
+                <option value="Orange">Orange</option>
+                <option value="Purple">Purple</option>
+                <option value="Teal">Teal</option>
+                <option value="Rose">Rose</option>
+                <option value="Gray">Gray</option>
+                <option value="Base Blue">Base Blue</option>
+            </select>
+            <select id="status" class="trait">
+                <option value="">Status (Any)</option>
+                <option value="Promoted">Promoted</option>
+                <option value="Demoted">Demoted</option>
+            </select>
+            
+            
+        </div>
+
+        <div id="dragn-table">
+
+            <!-- center the table in the container -->
+            <table id="dragns" style="margin: 0 auto;">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody id="dragns">
+                    <!-- dragns go here -->
+                </tbody>
+            </table>
+
+        </div>
+        <div class="footer">
+            <p><span style="letter-spacing:0px">@~</span> 2024 DragN'Puff</p>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <script>
+
+        function promote(id) {
+            // fetch GET api endpoint /api/promote/:tokenId
+            fetch(`https://api.dragnpuff.xyz/api/promote/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    $("#dragn-" + id).addClass("promoted").removeClass("excluded").removeClass("demoted");
+                    // hide buttons
+                    $("#dragn-" + id + " button").hide();
+                    // update span.status
+                    $("#dragn-" + id + " span.status").text("promoted");
+                    updateCounts();
+                });
+        }
+
+        function demote(id) {
+            // fetch GET api endpoint /api/demote/:tokenId
+            fetch(`https://api.dragnpuff.xyz/api/demote/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    $("#dragn-" + id).addClass("demoted").removeClass("excluded").removeClass("promoted");
+                    // hide buttons
+                    $("#dragn-" + id + " button").hide();
+                    // update span.status
+                    $("#dragn-" + id + " span.status").text("demoted");
+                    updateCounts();
+                });
+        }
+
+        function hundred(id) {
+            // fetch GET api endpoint /api/promote/:tokenId
+            fetch(`https://api.dragnpuff.xyz/api/promote/top/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    $("#dragn-" + id).addClass("top").removeClass("promoted").removeClass("excluded").removeClass("demoted");
+                    // hide buttons
+                    $("#dragn-" + id + " button").hide();
+                    // update span.status
+                    $("#dragn-" + id + " span.status").text("top 100");
+                    updateCounts();
+                });
+        }
+
+        function updateCounts() {
+            // fetch GET api endpoint /api/counts
+            fetch(`https://api.dragnpuff.xyz/api/promotedemote/counts`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    $("#promoted").text(data.promoted);
+                    $("#demoted").text(data.demoted);
+                    $("#top").text(data.top);
+                });
+        }
+
+        // docready
+        $( document ).ready(function() {
+
+            updateCounts();
+
+            $(".trait").change(async function() {
+                // clear existing images
+                $("#dragns").empty();
+
+                var eyes = $("#eyes").val();
+                var mouth = $("#mouth").val();
+                var headwear = $("#headwear").val();
+                var piercings = $("#piercings").val();
+                var clothes = $("#clothes").val();
+                var skin = $("#skin").val();
+                var background = $("#background").val();
+                var status = $("#status").val();
+
+                var query = db.collection("dragns");
+                if (eyes) {
+                    query = query.where("Eyes", "==", eyes);
+                }
+                if (mouth) {
+                    query = query.where("Mouth", "==", mouth);
+                }
+                if (headwear) {
+                    console.log("headwear", headwear);
+                    query = query.where("Headwear", "==", headwear.toString());
+                }
+                if (piercings) {
+                    query = query.where("Piercings", "==", piercings);
+                }
+                if (clothes) {
+                    query = query.where("Clothes", "==", clothes);
+                }
+                if (skin) {
+                    query = query.where("Skin", "==", skin);
+                }
+                if (background) {
+                    query = query.where("Background", "==", background);
+                }
+                if (status) {
+                    query = query.where("Status", "==", status);
+                }
+
+                // temp 
+                //query = db.collection("dragns").where("edition", ">", 13579);
+
+                // count
+                //const snapshot = await query.count().get();
+                //const snapshot = await getCountFromServer(query);
+                //console.log(snapshot.data().count);
+                //$("#count").text(snapshot.data().count);
+
+                // limit to 200
+                query = query.limit(300);
+
+                // order by edition
+                query = query.orderBy("edition", "asc");
+
+                var dragns = query
+                        .onSnapshot((querySnapshot) => {
+                            // if empty
+                            if (querySnapshot.empty) {
+                                var p = document.createElement("p");
+                                p.innerText = "No Dragns found.";
+                                document.getElementById("dragns").appendChild(p);
+                            }
+                            querySnapshot.forEach((doc) => {
+                                //console.log("user", JSON.stringify(doc.data()));
+                                var meta = doc.data();
+                                var id = doc.id;
+                                var imageUrl = `https://api.dragnpuff.xyz/thumbs/512/${id}.png`;
+                                // append img to div
+                                //var img = document.createElement("img");
+                                //img.src = imageUrl;
+                                //img.alt = `#${id}`;
+                                //img.title = `#${id}`;
+                                var status = "excluded";
+                                if (meta.edition <= 13579) {
+                                    status = "included";
+                                }
+                                if (meta.Status == "Promoted") {
+                                    status = "promoted";
+                                }
+                                if (meta.Status == "Demoted") {
+                                    status = "demoted";
+                                }
+                                if (meta.top == true) {
+                                    status = "top";
+                                }
+                                var buttons = "";
+                                if (status == "included" || meta.Status == "Promoted") {
+                                    //buttons = `<button onclick="demote('${id}')">Demote</button>`;
+                                    buttons += `<button onclick="hundred('${id}')">Top 100</button>`;
+                                }
+                                if (status == "excluded" || meta.Status == "Demoted") {
+                                    //buttons = `<button onclick="promote('${id}')">Promote</button>`;
+                                }
+                                
+                                var html = `
+                                <tr id="dragn-${id}" class="${status}">
+                                    <td>
+                                        <img src="${imageUrl}" alt="#${id}" title="#${id}" />
+                                    </td>
+                                    <td>
+                                        <h1>#${id}</h1>
+                                        <h3>Status: <span class="status">${status}</span></h3>
+                                        ${buttons}
+                                    </td>
+                                </tr>
+                                `;
+                                //document.getElementById("dragns").appendChild(html);
+                                $("#dragns").append(html);
+                            }); // forEach
+                        }); // onSnapshot
+            }); // trait change
+
+        }); // docready
+
+
+
+    </script>
+</html>
