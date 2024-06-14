@@ -12,6 +12,8 @@ const {
 //const fetch = require("node-fetch");
 const fetch = require("node-fetch");
 const ethers = require("ethers");
+const {PubSub} = require("@google-cloud/pubsub");
+const pubsub = new PubSub();
 
 const DragNPuffJSON = require("./abis/DragNPuff.json");
 const MinterJSON = require("./abis/ERC721Minter.json");
@@ -50,6 +52,10 @@ module.exports = {
         const util = module.exports;
         return new Promise(async (resolve, reject) => {
             var hodler = false;
+            log("isHODLer?", address);
+            if (!address) {
+                return resolve(hodler);
+            }
             // nom contract
             const provider = new ethers.providers.JsonRpcProvider(process.env.API_URL_BASE);
             const nom = new ethers.Contract(process.env.NOM_CONTRACT, erc20JSON.abi, provider);
@@ -150,6 +156,16 @@ module.exports = {
         }); // return new Promise
     }, // sendCast
 
+    "pubMint": async function(data) {
+        return new Promise(async function(resolve, reject) {
+            const topic = pubsub.topic('dragn-mint');
+            const messageBody = JSON.stringify(data);
+            const buffer = Buffer.from(messageBody);
+            topic.publishMessage({"data": buffer});
+            return resolve(1);
+        }); // return new Promise
+    }, // pubMint
+
     "frameHTML": async function(frame) {
         //console.log("build html for frame", JSON.stringify(frame));
         log("frame", frame);
@@ -239,11 +255,13 @@ module.exports = {
         }); // return new Promise
     }, // frameHTML
 
-    "farcasterVerifiedAddress": async function(user) {
+    "farcasterVerifiedAddress": function(user) {
         var address;
         if ("verified_addresses" in user) {
             if ("eth_addresses" in user.verified_addresses) {
-            address = user.verified_addresses.eth_addresses[user.verified_addresses.eth_addresses.length-1];
+                if (user.verified_addresses.eth_addresses.length > 0) {
+                    address = user.verified_addresses.eth_addresses[user.verified_addresses.eth_addresses.length-1];
+                }
             }
         } // if verified_addresses
         return address;
@@ -301,11 +319,11 @@ module.exports = {
     "validateAirstackREST": async function(req) {
         const util = module.exports;
         //console.log("validateAirstackREST", JSON.stringify(req.body));
-        if (!req.body.trustedData || !req.body.trustedData.messageBytes) {
-            console.log("validateAirstackREST: no messageBytes", JSON.stringify(req.body));
-            return resolve({error: "no messageBytes"});
-        }
         return new Promise(async function(resolve, reject) {
+            if (!req.body.trustedData || !req.body.trustedData.messageBytes) {
+                console.log("validateAirstackREST: no messageBytes", JSON.stringify(req.body));
+                return resolve({error: "no messageBytes"});
+            }
             var response = await fetch('https://hubs.airstack.xyz/v1/validateMessage', { 
                 method: "POST",
                 headers: {

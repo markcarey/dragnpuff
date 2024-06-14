@@ -13,6 +13,7 @@
   },
   "main": "index.js",
   "dependencies": {
+    "@google-cloud/pubsub": "^4.5.0",
     "cors": "^2.8.5",
     "ethers": "^5.5.3",
     "express": "^4.19.2",

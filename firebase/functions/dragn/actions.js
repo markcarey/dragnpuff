@@ -23,12 +23,20 @@ module.exports = {
             frame.id = "mint";
             frame.square = true;
             frame.postUrl = `https://api.dragnpuff.xyz/api/frames/mint`;
+
+            // TEMP: remove this later for launch
+            frame.imageText = "Hold yer DragN fire!!\nYou are too early!";
+            frame.image = `https://frm.lol/api/dragnpuff/frimg/${encodeURIComponent(frame.imageText)}.png`;
+            delete frame.imageText;
+            return resolve(frame);
+            // end TEMP
+
             var state;
             if ("state" in req.body.untrustedData) {
                 state = JSON.parse(decodeURIComponent(req.body.untrustedData.state));
             } else {
                 state = {
-                "method": "quantity"
+                    "method": "quantity"
                 };
             }
             //console.log("mint: state", JSON.stringify(state));
@@ -42,20 +50,24 @@ module.exports = {
             console.log("mint: frameResult", JSON.stringify(frameResult));
             if (frameResult.valid == false) {
                 frame.imageText = "I'm sorry, I couldn't validate this frame.";
-                frame.image = `https://api.dragnpuff.xyz/api/frimg/${encodeURIComponent(frame.imageText)}.png`;
+                frame.image = `https://frm.lol/api/dragnpuff/frimg/${encodeURIComponent(frame.imageText)}.png`;
                 delete frame.imageText;
                 return resolve(frame);
             }
+            state.username = frameResult.action.interactor.username;
             var address = util.farcasterVerifiedAddress(frameResult.action.interactor);
+            log("mint: address", address);
             if (!address) {
-                frame.imageText = "I'm sorry, I couldn't find your verified eth address.";
+                frame.imageText = "I'm sorry, I couldn't find your verified ETH address.";
+                frame.image = `https://frm.lol/api/dragnpuff/frimg/${encodeURIComponent(frame.imageText)}.png`;
+                delete frame.imageText;
                 return resolve(frame);
             }
             state.address = address;
             if (state.method == "quantity") {
                 var priceEth;
                 var canMint = false;
-                if ( util.isHODLer(address) ) {
+                if ( await util.isHODLer(address) ) {
                     priceEth = util.constants.HOLDER_PRICE_STRING;
                     //priceEth = ethers.utils.parseEther(util.constants.HOLDER_PRICE);
                     frame.imageText = `You have 100K $NOM: Mint for ${priceEth} ETH each`;
@@ -66,7 +78,7 @@ module.exports = {
                         frame.imageText = `Mint for ${priceEth} ETH each`;
                         canMint = true;
                     } else {
-                        frame.imageText = `Minting is open for 100K $NOM holders only`;
+                        frame.imageText = `Minting is open for 100K $NOM holders only\nFOMO? Buy $NOM!`;
                     }
                 }
                 state.priceEth = priceEth;
@@ -124,6 +136,20 @@ module.exports = {
                           }
                         ];
                         state.method = "done";
+                        var referralFid;
+                        if (castFid != 8685) {
+                            // cast not authored by @markcarey or TODO: update this later from referral credit
+                            referralFid = castFid;
+                        } // if castFid
+                        await util.pubMint({
+                            "contractAddress": process.env.DRAGNPUFF_CONTRACT,
+                            "quantity": state.quantity,
+                            "transactionId": state.transactionId,
+                            "referralFid": referralFid,
+                            "fid": fid,
+                            "username": state.username,
+                            "tokenId": state.tokenId
+                        });
                       } catch (e) {
                         frame.imageText = `Mint in progress...`;
                         frame.buttons = [
@@ -156,9 +182,10 @@ module.exports = {
                       ];
                       state.method = "minted";
           
+                      var referralFid;
                       if (castFid != 8685) {
                         // cast not authored by @markcarey or TODO: update this later from referral credit
-
+                        referralFid = castFid;
                       } // if castFid
                     } // if transactionId
                 } // if transactionId

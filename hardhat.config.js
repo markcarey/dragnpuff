@@ -38,5 +38,5 @@ module.exports = {
   }
 }
 
-// npx hardhat verify --network baseSepolia 0x
+// npx hardhat verify --network base 0x
 // npx hardhat ignition deploy ignition/modules/DragNPuff.js --network base

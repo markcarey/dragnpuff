@@ -11,6 +11,7 @@ const { getApps, initializeApp } = require("firebase-admin/app");
 if (!getApps().length) initializeApp();
 global.__base = __dirname + '/';
 const {onRequest} = require("firebase-functions/v2/https");
+const {onMessagePublished} = require("firebase-functions/v2/pubsub");
 const logger = require("firebase-functions/logger");
 
 var dragn = require(__base + 'dragn');
@@ -30,3 +31,13 @@ exports.api = onRequest({
   (req, res) => {
     return dragn.api(req, res);
 }); // api
+
+// exports.processMint = functions.pubsub.topic('mint').onPublish((message) => {
+//  return toka.processMint(message);
+//});
+
+// pubsub trigger:
+exports.processMint = onMessagePublished("dragn-mint", (event) => {
+  return dragn.processMint(event.data.message);
+}); // processMint
+
