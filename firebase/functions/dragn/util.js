@@ -19,11 +19,10 @@ const DragNPuffJSON = require("./abis/DragNPuff.json");
 const MinterJSON = require("./abis/ERC721Minter.json");
 const erc20JSON = require("./abis/IERC20.json");
 
-// TODO: change these for production
 const MIN_HOLDINGS = ethers.BigNumber.from("100000000000000000000000"); // 100,000 NOM
-const HOLDER_PRICE_STRING = "0.000042";
+const HOLDER_PRICE_STRING = "0.0042";
 const HOLDER_PRICE = ethers.utils.parseEther(HOLDER_PRICE_STRING);
-const PUBLIC_PRICE_STRING = "0.000069"
+const PUBLIC_PRICE_STRING = "0.0069"
 const PUBLIC_PRICE = ethers.utils.parseEther(PUBLIC_PRICE_STRING);
 const PUBLIC_MINT = false;
 

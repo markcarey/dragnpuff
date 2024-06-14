@@ -16,14 +16,6 @@ const logger = require("firebase-functions/logger");
 
 var dragn = require(__base + 'dragn');
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
-
-exports.helloWorld = onRequest((req, res) => {
-   logger.info("Hello logs!", {structuredData: true});
-   res.send("Hello from Firebase!");
-});
-
 exports.api = onRequest({
     timeoutSeconds: 60,
     memory: "1GiB",
@@ -31,10 +23,6 @@ exports.api = onRequest({
   (req, res) => {
     return dragn.api(req, res);
 }); // api
-
-// exports.processMint = functions.pubsub.topic('mint').onPublish((message) => {
-//  return toka.processMint(message);
-//});
 
 // pubsub trigger:
 exports.processMint = onMessagePublished("dragn-mint", (event) => {

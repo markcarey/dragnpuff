@@ -24,7 +24,7 @@ module.exports = {
             frame.square = true;
             frame.postUrl = `https://api.dragnpuff.xyz/api/frames/mint`;
 
-            // TEMP: remove this later for launch
+            // TEMP: TODO: remove this later for launch
             frame.imageText = "Hold yer DragN fire!!\nYou are too early!";
             frame.image = `https://frm.lol/api/dragnpuff/frimg/${encodeURIComponent(frame.imageText)}.png`;
             delete frame.imageText;
