@@ -1,6 +1,9 @@
 assets/src/
 assets/build/
 assets/archives/
+assets/promoted.json
+assets/demoted.json
+assets/top.json
 cache/
 artifacts/
 .DS_STORE
