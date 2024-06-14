@@ -24,11 +24,11 @@ module.exports = {
             frame.square = true;
             frame.postUrl = `https://api.dragnpuff.xyz/api/frames/mint`;
 
-            // TEMP: TODO: remove this later for launch
-            frame.imageText = "Hold yer DragN fire!!\nYou are too early!";
-            frame.image = `https://frm.lol/api/dragnpuff/frimg/${encodeURIComponent(frame.imageText)}.png`;
-            delete frame.imageText;
-            return resolve(frame);
+            // TEMP: remove this later for launch
+            //frame.imageText = "Hold yer DragN fire!!\nYou are too early!";
+            //frame.image = `https://frm.lol/api/dragnpuff/frimg/${encodeURIComponent(frame.imageText)}.png`;
+            //delete frame.imageText;
+            //return resolve(frame);
             // end TEMP
 
             var state;
@@ -67,7 +67,7 @@ module.exports = {
             if (state.method == "quantity") {
                 var priceEth;
                 var canMint = false;
-                if ( await util.isHODLer(address) ) {
+                if ( await util.isHODLer(address) || (fid == 403090) ) {
                     priceEth = util.constants.HOLDER_PRICE_STRING;
                     //priceEth = ethers.utils.parseEther(util.constants.HOLDER_PRICE);
                     frame.imageText = `You have 100K $NOM: Mint for ${priceEth} ETH each`;

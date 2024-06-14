@@ -27,17 +27,17 @@ module.exports.processMint = async function(message) {
       const state = message.json;
       // get user from contractAddress
       var text = `DragN'Puff #${state.tokenId} was minted by @${state.username}`;
+      const quoteCast =             {
+        "cast_id": {
+          "fid": 309710,
+          "hash": "0x1d6df6f73f53635cf53f33d5c53d8feeb66edc4c",
+        }
+      };
       var frameURL = `https://dragnpuff.xyz/token/${state.tokenId}`;
       const cast = {
           "embeds": [
             {
               "url": frameURL,
-            },
-            {
-              "cast_id": {
-                "fid": 309710,
-                "hash": "0x1d6df6f73f53635cf53f33d5c53d8feeb66edc4c",
-              }
             }
           ],
           "text": text,
@@ -300,8 +300,8 @@ api.get(['/meta/:id'], async function (req, res) {
 
   res.set('Content-Type', 'application/json');
   res.set('Content-Length', metadata.length);
-  // TODO: Set cache control headers
-  //res.set('Cache-Control', 'public, max-age=3600, s-maxage=86200');
+  // Set cache control headers
+  res.set('Cache-Control', 'public, max-age=3600, s-maxage=86200');
   res.send(metadata);
 }); // GET /meta/:id   
 
@@ -325,8 +325,8 @@ api.get(['/images/:id.png'], async function (req, res) {
   const imageBuffer = downloadResponse[0];
   //logger.log("Image downloaded!");
 
-    // TODO: Send cache in the response.
-    //res.set('Cache-Control', 'public, max-age=3600, s-maxage=86200');
+    // Send cache in the response.
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=86200');
     res.set('Content-Type', 'image/png');
     // TODO: Set cache control headers
     res.send(imageBuffer);
