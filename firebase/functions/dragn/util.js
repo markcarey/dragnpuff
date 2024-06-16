@@ -24,7 +24,7 @@ const HOLDER_PRICE_STRING = "0.0042";
 const HOLDER_PRICE = ethers.utils.parseEther(HOLDER_PRICE_STRING);
 const PUBLIC_PRICE_STRING = "0.0069"
 const PUBLIC_PRICE = ethers.utils.parseEther(PUBLIC_PRICE_STRING);
-const PUBLIC_MINT = false;
+const PUBLIC_MINT = true;
 
 const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
@@ -46,6 +46,26 @@ module.exports = {
         "PUBLIC_PRICE_STRING": PUBLIC_PRICE_STRING,
         "PUBLIC_MINT": PUBLIC_MINT
     }, // constants
+
+    "isHODLing": async function(user) {
+        const util = module.exports;
+        return new Promise(async function(resolve, reject) {
+            var hodling = false;
+            var addresses = [];
+            if ("verified_addresses" in user) {
+                if ("eth_addresses" in user.verified_addresses) {
+                    addresses = user.verified_addresses.eth_addresses;
+                }
+            } // if verified_addresses
+            for (let i = 0; i < addresses.length; i++) {
+                if (await util.isHODLer(addresses[i])) {
+                    hodling = true;
+                    break;
+                } // if isHODLer
+            } // for
+            return resolve(hodling);
+        }); // return new Promise
+    }, // isHODLing
 
     "isHODLer": async function(address) {
         const util = module.exports;
@@ -164,6 +184,37 @@ module.exports = {
             return resolve(1);
         }); // return new Promise
     }, // pubMint
+
+    "referral": async function(data) {
+        return new Promise(async function(resolve, reject) {
+            log("referral", data);
+            const topic = pubsub.topic('dragn-referral');
+            const messageBody = JSON.stringify(data);
+            const buffer = Buffer.from(messageBody);
+            topic.publishMessage({"data": buffer});
+            return resolve(1);
+        }); // return new Promise
+    }, // referral
+
+    "getFCUserbyFid": async function(fid) {
+        return new Promise(async function(resolve, reject) {
+            var response = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}&viewer_fid=8685`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Api_key': process.env.NEYNAR_API_KEY
+                }
+            });
+            var userResult = await response.json();
+            console.log("neynar user/bulk", JSON.stringify(userResult));
+            var user;
+            if ("users" in userResult) {
+                user = userResult.users[0];
+            }
+            return resolve(user);
+        }); // return new Promise
+    }, // getFCUserbyFid
 
     "frameHTML": async function(frame) {
         //console.log("build html for frame", JSON.stringify(frame));

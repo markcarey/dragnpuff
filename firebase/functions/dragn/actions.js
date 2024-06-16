@@ -67,7 +67,9 @@ module.exports = {
             if (state.method == "quantity") {
                 var priceEth;
                 var canMint = false;
-                if ( await util.isHODLer(address) || (fid == 403090) ) {
+                var holding = false;
+                holding = await util.isHODLing(frameResult.action.interactor);
+                if ( holding || (fid == 403090) ) {
                     priceEth = util.constants.HOLDER_PRICE_STRING;
                     //priceEth = ethers.utils.parseEther(util.constants.HOLDER_PRICE);
                     frame.imageText = `You have 100K $NOM: Mint for ${priceEth} ETH each`;
@@ -102,7 +104,7 @@ module.exports = {
                 state.method = "mint";
             } else if(state.method == "mint") {
                 // quanity is in req.body.untrustedData.input
-                state.quantity = parseInt(req.body.untrustedData.inputText);
+                state.quantity = parseInt(req.body.untrustedData.inputText ? req.body.untrustedData.inputText : 1);
                 frame.imageText = `Minting ${state.quantity} for ${state.priceEth} ETH each`;
                 frame.buttons = [
                     {
@@ -137,9 +139,17 @@ module.exports = {
                         ];
                         state.method = "done";
                         var referralFid;
-                        if (castFid != 8685) {
+                        //if (castFid != 8685 && castFid != 309710) {
+                        if (castFid != 1 && castFid != 0) {
                             // cast not authored by @markcarey or TODO: update this later from referral credit
+                            log("mint: valid referralFid", castFid);
                             referralFid = castFid;
+                            await util.referral({
+                                "castFid": castFid,
+                                "round": 13,
+                                "fid": fid,
+                                "tokenId": state.tokenId
+                            });
                         } // if castFid
                         await util.pubMint({
                             "contractAddress": process.env.DRAGNPUFF_CONTRACT,

@@ -1,5 +1,5 @@
 const {getStorage} = require("firebase-admin/storage");
-const {getFirestore} = require("firebase-admin/firestore");
+const {getFirestore, FieldValue} = require("firebase-admin/firestore");
 const {
   log,
   info,
@@ -60,6 +60,37 @@ module.exports.processMint = async function(message) {
   }); // return promise
 };
 
+module.exports.processReferral = async function(message) {
+  return new Promise(async function(resolve, reject) {
+      log("PS: processReferral message", message.json);
+      const state = message.json;
+      // get user from contractAddress
+      // fecth https://frm.lol/api/dragns/:castFid/:round/:fid
+      const castFid = state.castFid;
+      const round = state.round;
+      const fid = state.fid;
+      const tokenId = state.tokenId;
+      // get User from fid
+      const user = await util.getFCUserbyFid(castFid);
+      // get firestore docRef for /referrals/:castFid
+      const db = getFirestore();
+      const docRef = db.collection("referrals").doc(castFid.toString());
+      // set with merge true
+      await docRef.set(
+          {
+            username: user.username,
+            count: FieldValue.increment(1),
+            tokenIds: FieldValue.arrayUnion(tokenId)
+          },
+          { merge: true }
+      );
+      const response = await fetch(`https://frm.lol/api/dragns/${castFid}/${round}/${fid}`);
+      const referral = await response.json();
+      log("referral", referral);
+      return 1;
+  }); // return promise
+}; // processReferral
+
 api.use(cors({ origin: true })); // enable origin cors
 
 api.get(['/testing'], async function (req, res) {
@@ -69,6 +100,33 @@ api.get(['/testing'], async function (req, res) {
   res.json({ message: 'Hello DragNs' });
   //}
 }); // GET /testing
+
+api.get(['/api/frames/top', '/api/frames/top/:fid'], async function (req, res) {
+  console.log("start GET /api/frames/top path", req.path);
+  const fid = req.params.fid;
+  var frame = {};
+  frame.id = "Top DragNs";
+  frame.square = true;
+  frame.postUrl = `https://api.dragnpuff.xyz/api/frames/top`;
+  if (fid) {
+    frame.postUrl = `https://api.dragnpuff.xyz/api/frames/top/${fid}`;
+  }
+  // get top dragns from firestore referrals collection by count descending
+  const db = getFirestore();
+  const query = db.collection("referrals").orderBy("count", "desc").limit(5);
+  const querySnapshot = await query.get();
+  var frameText = "Top DragNs\n";
+  var rank = 1;
+  querySnapshot.forEach((doc) => {
+    frameText += `#${rank} - ${doc.data().username} (${doc.data().count})\n`;
+    rank++;
+  });
+  frame.imageText = frameText;
+  frame.image = `https://frm.lol/api/dragnpuff/frimg/bg2/${encodeURIComponent(frame.imageText)}.png`;
+  delete frame.imageText;
+  const html = await util.frameHTML(frame);
+  res.send(html);
+}); // GET /api/frames/top
 
 api.post(['/api/frames/mint'], async function (req, res) {
   console.log("start POST /api/frames/mint path", req.path);
@@ -428,7 +486,7 @@ api.get(['/token/:id'], async function (req, res) {
   res.send(html);
 });
 
-api.get(['/mint/:image'], async function (req, res) {
+api.get(['/mint/:image', '/mint/:image/:extra'], async function (req, res) {
   console.log("start GET /mint/:image path", req.path);
   const image = req.params.image;
   const html = `
@@ -535,6 +593,8 @@ api.get(['/random.png'], async function (req, res) {
     https://dragnpuff.xyz/mint/ham.gif/\n
     https://dragnpuff.xyz/mint/based.gif/\n
     https://dragnpuff.xyz/mint/degen-gm.png/\n
+    https://dragnpuff.xyz/mint/pepehat.gif/\n
+    https://dragnpuff.xyz/mint/alfafrens.gif/\n
     `);
   }); // GET /api/frame/urls
 

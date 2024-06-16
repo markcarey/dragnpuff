@@ -29,3 +29,8 @@ exports.processMint = onMessagePublished("dragn-mint", (event) => {
   return dragn.processMint(event.data.message);
 }); // processMint
 
+// pubsub trigger:
+exports.processReferral = onMessagePublished("dragn-referral", (event) => {
+  return dragn.processReferral(event.data.message);
+}); // processReferral
+
