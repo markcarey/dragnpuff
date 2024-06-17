@@ -218,4 +218,89 @@ module.exports = {
         }); // return new Promise
     }, // mintTxn
 
+    "flex": async function(req) {
+        return new Promise(async function(resolve, reject) {
+          await util.validateAirstackREST(req);
+          var frame = {};
+          frame.id = `DragNPuffFlex`;
+          frame.square = true;
+          frame.postUrl = `https://dragnpuff.xyz/api/frames/flex`;
+          var state;
+          if ("state" in req.body.untrustedData) {
+            state = JSON.parse(decodeURIComponent(req.body.untrustedData.state));
+          } else {
+            state = {
+              "index": 0
+            };
+          }
+          state.index = parseInt(state.index);
+          var fid = req.body.untrustedData.fid;
+          if (req.params.session) {
+            fid = req.params.session;
+          }
+          if ("tokenIds" in state) {
+            // no-op
+          } else {
+            const tokens = await util.dragnsForFid(fid);
+            // for loop through tokens array
+            var tokenIds = [];
+            for (var i = 0; i < tokens.length; i++) {
+              tokenIds.push(tokens[i].tokenId);
+            }
+            state.tokenIds = tokenIds;
+          }
+          console.log("state", JSON.stringify(state));
+          // if zero tokens
+          if (state.tokenIds.length == 0) {
+            frame.imageText = "You do not own any DragNs. Sad face.";
+            frame.postUrl = `https://dragnpuff.xyz/api/frames/mint`;
+            frame.buttons = [
+              {
+                "label": "Get Yours",
+                "action": "post"
+              },
+              {
+                "label": "Cast It!",
+                "action": "link",
+                "postUrl": `https://warpcast.com/~/compose?text=${encodeURIComponent('The DragNs have arrived. Have you minted yours?')}&embeds[]=https://dragnpuff.xyz` 
+              }
+            ];
+            return resolve(frame);
+          }
+          const tokenId = state.tokenIds[state.index];
+    
+          frame.image = `https://dragnpuff.xyz/thumbs/1024/${tokenId}.png`;
+          frame.buttons = [
+            {
+              "label": `Flex #${state.tokenIds[state.index]}`,
+              "action": "link",
+              "target": `https://warpcast.com/~/compose?text=${encodeURIComponent(`Behold out my DragN #${state.tokenIds[state.index]}!`)}&embeds[]=https://dragnpuff.xyz/token/${state.tokenIds[state.index]}`
+            }
+          ];
+          // add First button if not first token
+          if (state.index == state.tokenIds.length - 1) {
+            frame.buttons.push(
+              {
+                "label": "First",
+                "action": "post"
+              }
+            );
+            state.index = 0;
+          } else {
+            // add next button if not last token
+            if (state.index < state.tokenIds.length - 1) {
+              frame.buttons.push(
+                {
+                  "label": "Next",
+                  "action": "post"
+                }
+              );
+              state.index += 1;
+            }
+          }
+          frame.state = state;
+          return resolve(frame);
+        }); // return new Promise
+      }, // flex
+
 }; // module.exports

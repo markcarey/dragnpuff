@@ -141,6 +141,24 @@ api.post(['/api/frames/nom'], async function (req, res) {
   res.send(html);
 }); // POST /api/frames/mint
 
+api.get(['/api/frames/flex'], async function (req, res) {
+  console.log("start GET /api/frames/flex path", req.path);
+  var frame = {};
+  frame.id = "DragN Flex";
+  frame.square = true;
+  frame.postUrl = `https://api.dragnpuff.xyz/api/frames/flex`;
+  frame.image = `https://api/dragnpuff.xyz/img/flex.png`;
+  const html = await util.frameHTML(frame);
+  res.send(html);
+}); // GET /api/frames/flex
+
+api.post(['/api/frames/flex'], async function (req, res) {
+  console.log("start POST /api/frames/flex path", req.path);
+  const frame = await actions.flex(req);
+  const html = await util.frameHTML(frame);
+  res.send(html);
+}); // POST /api/frames/flex
+
 api.post(['/api/txn/mint/:address/:quantity'], async function (req, res) {
   console.log("start POST /api/txn/mint/:address/:quantity path", req.path);
   var address = req.params.address;

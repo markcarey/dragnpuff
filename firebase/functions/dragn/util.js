@@ -216,6 +216,53 @@ module.exports = {
         }); // return new Promise
     }, // getFCUserbyFid
 
+    "dragnsForFid": async function(fid) {
+        const util = module.exports;
+        return new Promise(async function(resolve, reject) {
+            const query = `
+            query dragnsForFid {
+                Base: TokenBalances(
+                  input: {filter: {owner: {_eq: "fc_fid:${fid}"}, tokenAddress: {_eq: "${process.env.DRAGNPUFF_CONTRACT}"}, tokenType: {_eq: ERC721}}, blockchain: base, limit: 50}
+                ) {
+                  TokenBalance {
+                    tokenId
+                    token {
+                      name
+                      symbol
+                    }
+                    tokenNfts {
+                      contentValue {
+                        image {
+                          small
+                        }
+                      }
+                    }
+                  }
+                  pageInfo {
+                    nextCursor
+                    prevCursor
+                  }
+                }
+              }
+            `;
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': process.env.AIRSTACK_API_KEY
+            };
+            var res = await fetch(airstackAPI, { 
+                method: 'POST', 
+                headers: headers,
+                body: JSON.stringify({
+                    "query": query
+                })
+            });
+            var result = await res.json();   
+            log("dragnsForFid result", result);     
+            var tokens = result.data.Base.TokenBalance;
+            resolve(tokens);
+        }); // return new Promise
+    }, // dragnsForFid
+
     "frameHTML": async function(frame) {
         //console.log("build html for frame", JSON.stringify(frame));
         log("frame", frame);
