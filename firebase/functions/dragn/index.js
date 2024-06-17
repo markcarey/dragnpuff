@@ -141,13 +141,24 @@ api.post(['/api/frames/nom'], async function (req, res) {
   res.send(html);
 }); // POST /api/frames/mint
 
-api.get(['/api/frames/flex'], async function (req, res) {
+api.get(['/api/frames/flex', '/flex'], async function (req, res) {
   console.log("start GET /api/frames/flex path", req.path);
   var frame = {};
   frame.id = "DragN Flex";
   frame.square = true;
   frame.postUrl = `https://api.dragnpuff.xyz/api/frames/flex`;
-  frame.image = `https://api/dragnpuff.xyz/img/flex.png`;
+  frame.image = `https://api.dragnpuff.xyz/img/flex.png`;
+  frame.buttons = [
+    { 
+      "label": "Flex",
+      "action": "post"
+    },
+    {
+      "label": "Cast It!",
+      "action": "link",
+      "target": `https://warpcast.com/~/compose?text=${encodeURIComponent('The DragNs have arrived. Have you minted yours?')}&embeds[]=https://dragnpuff.xyz` 
+    }
+  ];
   const html = await util.frameHTML(frame);
   res.send(html);
 }); // GET /api/frames/flex

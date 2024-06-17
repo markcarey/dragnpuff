@@ -262,7 +262,7 @@ module.exports = {
               {
                 "label": "Cast It!",
                 "action": "link",
-                "postUrl": `https://warpcast.com/~/compose?text=${encodeURIComponent('The DragNs have arrived. Have you minted yours?')}&embeds[]=https://dragnpuff.xyz` 
+                "target": `https://warpcast.com/~/compose?text=${encodeURIComponent('The DragNs have arrived. Have you minted yours?')}&embeds[]=https://dragnpuff.xyz` 
               }
             ];
             return resolve(frame);
@@ -274,7 +274,7 @@ module.exports = {
             {
               "label": `Flex #${state.tokenIds[state.index]}`,
               "action": "link",
-              "target": `https://warpcast.com/~/compose?text=${encodeURIComponent(`Behold out my DragN #${state.tokenIds[state.index]}!`)}&embeds[]=https://dragnpuff.xyz/token/${state.tokenIds[state.index]}`
+              "target": `https://warpcast.com/~/compose?text=${encodeURIComponent(`Behold my DragN #${state.tokenIds[state.index]}!`)}&embeds[]=https://dragnpuff.xyz/token/${state.tokenIds[state.index]}`
             }
           ];
           // add First button if not first token

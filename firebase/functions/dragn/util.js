@@ -26,6 +26,8 @@ const PUBLIC_PRICE_STRING = "0.0069"
 const PUBLIC_PRICE = ethers.utils.parseEther(PUBLIC_PRICE_STRING);
 const PUBLIC_MINT = true;
 
+const airstackAPI = `https://api.airstack.xyz/gql`;
+
 const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
 };

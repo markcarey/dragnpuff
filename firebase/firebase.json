@@ -47,6 +47,14 @@
           "function": "api"
         },
         {
+          "source": "/flex",
+          "function": "api"
+        },
+        {
+          "source": "/flex/**",
+          "function": "api"
+        },
+        {
           "source": "/random.png",
           "function": "api"
         }
