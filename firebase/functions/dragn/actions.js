@@ -1,5 +1,5 @@
 const {getStorage} = require("firebase-admin/storage");
-const {getFirestore} = require("firebase-admin/firestore");
+const {getFirestore, FieldValue} = require("firebase-admin/firestore");
 const {
     log,
     info,
@@ -41,6 +41,7 @@ module.exports = {
             }
             //console.log("mint: state", JSON.stringify(state));
             log("mint: state", state);
+            log("mint: req.body.untrustedData", req.body.untrustedData);
             // get fid:
             const fid = req.body.untrustedData.fid;
             // get cast author fid
@@ -302,5 +303,207 @@ module.exports = {
           return resolve(frame);
         }); // return new Promise
       }, // flex
+
+    "choose": async function(req) {
+        return new Promise(async function(resolve, reject) {
+            await util.validateAirstackREST(req);
+            const firestore = getFirestore();
+            var frame = {};
+            frame.id = "All Must Choose";
+            frame.square = true;
+            frame.postUrl = `https://api.dragnpuff.xyz/api/frames/choose`;
+            var state;
+            if ("state" in req.body.untrustedData) {
+                state = JSON.parse(decodeURIComponent(req.body.untrustedData.state));
+            } else {
+                state = {
+                    "method": "check"
+                };
+            }
+            log("choose: state", state);
+            const fid = req.body.untrustedData.fid;
+            const frameResult = await util.validate(req);
+            log("choose: frameResult", frameResult);
+            if (frameResult.valid == false) {
+                frame.imageText = "I'm sorry, I couldn't validate this frame.";
+                frame.image = `https://frm.lol/api/dragnpuff/frimg/choose/${encodeURIComponent(frame.imageText)}.png`;
+                delete frame.imageText;
+                return resolve(frame);
+            }
+            state.username = frameResult.action.interactor.username;
+            const choicesDocRef = firestore.collection("choices").doc(fid.toString());
+            const choiceDoc = await choicesDocRef.get();
+            if (choiceDoc.exists) {
+                state.house = choiceDoc.data().choice;
+                frame.imageText = `You have chosen ${state.house}!\n\nCast your choice!`;
+                frame.buttons = [
+                    {
+                        "label": "Cast It!",
+                        "action": "link",
+                        "target": `https://warpcast.com/~/compose?text=${encodeURIComponent(`I choose ${state.house}! All must choose.`)}&embeds[]=https://dragnpuff.xyz/house/${state.house}`
+                    }
+                ];
+                frame.image = `https://frm.lol/api/dragnpuff/frimg/choose/${encodeURIComponent(frame.imageText)}.png`;
+                delete frame.imageText;
+                return resolve(frame);
+            }
+            const stats = await util.pledgeStats(fid);
+            log("choose: stats", stats);
+            if (stats.dragns == 0) {
+                frame.imageText = "I'm sorry, you don't own any DragNs.";
+                frame.buttons = [
+                    {
+                        "label": "Mint",
+                        "action": "post",
+                        "postUrl": "https://api.dragnpuff.xyz/api/frames/mint"
+                    }
+                ];
+                frame.image = `https://frm.lol/api/dragnpuff/frimg/choose/${encodeURIComponent(frame.imageText)}.png`;
+                delete frame.imageText;
+                return resolve(frame);
+            }
+            state.nomBalance = await util.nomBalance(frameResult.action.interactor);
+            log("choose: nomBalance", state.nomBalance);
+            if (state.method == "check") {
+                frame.imageText = `Choose wisely, ${state.username}!\nYou have ${stats.dragns} DragNs`;
+                // if stats.houses.length <= 4 then one button for each house
+                if ( (stats.houses.length > 0) && (stats.houses.length <= 4) ) {
+                    state.chooseType = "buttons";
+                    frame.buttons = [];
+                    for (var i = 0; i < stats.houses.length; i++) {
+                        frame.buttons.push({
+                            "label": stats.houses[i],
+                            "action": "post"
+                        });
+                    }
+                } else {
+                    state.chooseType = "input";
+                    frame.imageText += `\nChoose one of `;
+                    if (stats.houses.length == 0) {
+                        // an array of the values of util.houses.pledge object
+                        stats.houses = Object.keys(util.houses.pledge);
+                    }
+                    for (var i = 0; i < stats.houses.length; i++) {
+                        frame.imageText += `${stats.houses[i]}`;
+                        if (i < stats.houses.length - 1) {
+                            frame.imageText += ", ";
+                        }
+                    } // for i
+                    frame.textField = "Enter the house you choose";
+                    frame.buttons = [
+                        {
+                            "label": "Choose",
+                            "action": "post"
+                        }
+                    ];
+                }
+                state.method = "chosen";
+            } else if (state.method == "chosen") {
+                if (state.chooseType == "input") {
+                    state.house = req.body.untrustedData.inputText;
+                } else {
+                    // button index chosen
+                    state.house = stats.houses[req.body.untrustedData.buttonIndex - 1];
+                }
+                log("choose: state.house", state.house);
+                // get house doc from firestore in collection houses
+                const houseRef = firestore.collection("houses").doc(state.house);
+                const houseDoc = await houseRef.get();
+                if (!houseDoc.exists) {
+                    frame.imageText = `I'm sorry, I couldn't find the house ${state.house}`;
+                    frame.image = `https://frm.lol/api/dragnpuff/frimg/choose/${encodeURIComponent(frame.imageText)}.png`;
+                    delete frame.imageText;
+                    return resolve(frame);
+                }
+                const houseData = houseDoc.data();
+                log("choose: houseData", houseData);
+                // update house doc in firestore
+                var nomPoints = 0;
+                // 1 nomPoint for every 100,000 in nomBalance:
+                //nomPoints = Math.floor(state.nomBalance / 100000);
+                const houseUpdate = {
+                    "dragns": FieldValue.increment(stats.dragns),
+                    "rarity": FieldValue.increment(stats.rare),
+                    "nom": FieldValue.increment(state.nomBalance),
+                    "total": FieldValue.increment(stats.dragns + stats.rare + nomPoints),
+                    "fids": FieldValue.arrayUnion(fid)
+                };
+                await houseRef.update(houseUpdate);
+                // add choices doc in firestore
+                stats.choice = state.house;
+                await choicesDocRef.set(stats);
+                frame.imageText = `You have chosen ${state.house}!\n\nCast your choice!`;
+                frame.buttons = [
+                    {
+                        "label": "Cast It!",
+                        "action": "link",
+                        "target": `https://warpcast.com/~/compose?text=${encodeURIComponent(`I choose ${state.house}! All must choose.`)}&embeds[]=https://dragnpuff.xyz/house/${state.house}`
+                    }
+                ];
+                state.method = "cast";
+            } // if state.method
+            frame.state = state;
+            frame.image = `https://frm.lol/api/dragnpuff/frimg/choose/${encodeURIComponent(frame.imageText)}.png`;
+            delete frame.imageText;
+            return resolve(frame);
+        }); // return new Promise
+    }, // choose
+
+    "pixelnounsAirdrop": async function(req) {
+        return new Promise(async function(resolve, reject) {
+            await util.validateAirstackREST(req);
+            var frame = {};
+            frame.id = "pixelnounsAirdrop";
+            frame.square = true;
+            frame.postUrl = `https://api.dragnpuff.xyz/api/frames/pixelnounsAirdrop`;
+            var state;
+            if ("state" in req.body.untrustedData) {
+                state = JSON.parse(decodeURIComponent(req.body.untrustedData.state));
+            } else {
+                state = {
+                    "method": "check"
+                };
+            }
+            //console.log("mint: state", JSON.stringify(state));
+            log("drop: state", state);
+            log("drop: req.body.untrustedData", req.body.untrustedData);
+            // get fid:
+            const fid = req.body.untrustedData.fid;
+            const frameResult = await util.validate(req);
+            console.log("mint: frameResult", JSON.stringify(frameResult));
+            if (frameResult.valid == false) {
+                frame.imageText = "I'm sorry, I couldn't validate this frame.";
+                frame.image = `https://frm.lol/api/dragnpuff/frimg/${encodeURIComponent(frame.imageText)}.png`;
+                delete frame.imageText;
+                return resolve(frame);
+            }
+            state.username = frameResult.action.interactor.username;
+            const ownsDragN = await util.ownsDragN(frameResult.action.interactor);
+            if (!ownsDragN) {
+                frame.imageText = "I'm sorry, you don't own a DragN.";
+                frame.image = `https://frm.lol/api/dragnpuff/frimg/${encodeURIComponent(frame.imageText)}.png`;
+                delete frame.imageText;
+                return resolve(frame);
+            }
+            await util.referral({
+                "castFid": fid,
+                "round": 13,
+                "fid": 69420,
+                "tokenId": 0
+            });
+            frame.buttons = [
+                {
+                    "label": "Cast It!",
+                    "action": "link",
+                    "target": `https://warpcast.com/~/compose?text=${encodeURIComponent(`I just claimed the DragN x Pixel Nouns airdrop! All DragN'Puff owners are eligible. No snapshot, it's not too late to mint a DragN.`)}&embeds[]=https://dragnpuff.xyz/pixel`
+                }
+            ];
+            frame.imageText = `Boom!\nYour Pixel Noun\nwill be dropped on\nDegen Chain`;
+            frame.image = `https://frm.lol/api/dragnpuff/frimg/${encodeURIComponent(frame.imageText)}.png`;
+            delete frame.imageText;
+            return resolve(frame);
+        }); // return new Promise
+    }, // pixelnounsAirdrop
+
 
 }; // module.exports

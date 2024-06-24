@@ -49,6 +49,70 @@ module.exports = {
         "PUBLIC_MINT": PUBLIC_MINT
     }, // constants
 
+    "houses": {
+        "pledge": {
+           "Based Tee": "base",
+           "Mfer Hoodie": "mfer",
+           "$NOM Tee": "nom",
+           "Perl Jersey": "perl",
+           "FarCards Tee": "farcards",
+           "Ham Tee": "ham",
+           "Degen Tee": "degen"
+        },
+        "rare": [
+            "Pixelated OG",
+            "Sleep Mask",
+            "Kevin",
+            "Noggles Red",
+            "Noggles Blue",
+            "Noggles 3D",
+            "Humanoid",
+            "Pipe",
+            "Tongue Ring",
+            "Gold Tooth",
+            "Diamond Grill",
+            "Rainbow Spinner",
+            "Pepe Cap",
+            "Afro",
+            "Khaleesi",
+            "Mowhawk - Leopard",
+            "Mowhawk - Alien",
+            "Mowhawk - Gold",
+            "Crown",
+            "Brow Rings",
+            "Bull Ring",
+            "Diamond Studs",
+            "Mfer Hoodie",
+            "Power Badge Tee",
+            "Yellow Tracksuit",
+            "Huey Heffy",
+            "Astronaut",
+            "Staying Alive",
+            "Thriller",
+            "Tie-Dye Tee",
+            "Tux",
+            "Tattooed",
+            "Zebra",
+            "Leopard",
+            "Robot",
+            "Alien",
+            "Gold",
+            "Teal",
+            "Rose",
+            "Gray",
+            "Base Blue"
+        ],
+        "layers": [
+            "Eyes",
+            "Mouth",
+            "Headwear",
+            "Clothing",
+            "Skin",
+            "Piercings",
+            "Background"
+        ]
+    }, // houses
+
     "isHODLing": async function(user) {
         const util = module.exports;
         return new Promise(async function(resolve, reject) {
@@ -88,6 +152,52 @@ module.exports = {
             return resolve(hodler);
         });
     }, // isHODLer
+
+    "nomBalance": async function(user) {
+        const util = module.exports;
+        return new Promise(async function(resolve, reject) {
+            var balance = 0;
+            var addresses = [];
+            if ("verified_addresses" in user) {
+                if ("eth_addresses" in user.verified_addresses) {
+                    addresses = user.verified_addresses.eth_addresses;
+                }
+            } // if verified_addresses
+            // nom contract
+            const provider = new ethers.providers.JsonRpcProvider(process.env.API_URL_BASE);
+            const nom = new ethers.Contract(process.env.NOM_CONTRACT, erc20JSON.abi, provider);
+            for (let i = 0; i < addresses.length; i++) {
+                const bal = await nom.balanceOf(addresses[i]);
+                balance += bal;
+            } // for
+            // convert balance to ether units (18 decimals):
+            balance = ethers.utils.formatEther(balance);
+            return resolve(parseInt(balance));
+        }); // return new Promise
+    }, // nomBalance
+
+    "ownsDragN": async function(user) {
+        const util = module.exports;
+        return new Promise(async function(resolve, reject) {
+            var ownsDragN = false;
+            // dragN contract
+            const provider = new ethers.providers.JsonRpcProvider(process.env.API_URL_BASE);
+            const nft = new ethers.Contract(process.env.DRAGNPUFF_CONTRACT, DragNPuffJSON.abi, provider);
+            var addresses = [];
+            if ("verified_addresses" in user) {
+                if ("eth_addresses" in user.verified_addresses) {
+                    addresses = user.verified_addresses.eth_addresses;
+                }
+            } // if verified_addresses
+            for (let i = 0; i < addresses.length; i++) {
+                if (await nft.balanceOf(addresses[i]) > 0) {
+                    ownsDragN = true;
+                    break;
+                } // if balanceOf
+            } // for
+            return resolve(ownsDragN);
+        }); // return new Promise
+    }, // ownsDragN
 
     "mintTxnJSON": async function(address, quantity) {
         const util = module.exports;
@@ -220,6 +330,7 @@ module.exports = {
 
     "dragnsForFid": async function(fid) {
         const util = module.exports;
+        var tokens = [];
         return new Promise(async function(resolve, reject) {
             const query = `
             query dragnsForFid {
@@ -259,11 +370,61 @@ module.exports = {
                 })
             });
             var result = await res.json();   
-            log("dragnsForFid result", result);     
-            var tokens = result.data.Base.TokenBalance;
+            log("dragnsForFid result", result);    
+            try {
+                tokens = result.data.Base.TokenBalance;
+            } catch (err) {
+                console.error(err);
+            }
+            if (!tokens) {
+                tokens = [];
+            }
             resolve(tokens);
         }); // return new Promise
     }, // dragnsForFid
+
+    "pledgeStats": async function(fid) {
+        const util = module.exports;
+        return new Promise(async function(resolve, reject) {
+            var dragns = await util.dragnsForFid(fid);
+            var stats = {};
+            stats.dragns = dragns.length;
+            stats.houses = [];
+            stats.rare = 0;
+            var dragnIDs = [];
+            for (let i = 0; i < dragns.length; i++) {
+                var dragn = dragns[i];
+                var dragnID = dragn.tokenId;
+                dragnIDs.push(parseInt(dragnID));
+            }
+            // get dragns from firestore
+            const firestore = getFirestore();
+            const dragnsRef = firestore.collection("dragns");
+            const dragnsSnap = await dragnsRef.where("edition", "in", dragnIDs).get();
+            dragnsSnap.forEach((doc) => {
+                var dragn = doc.data();
+                // for each houses.pledge key
+                for (const [key, value] of Object.entries(util.houses.pledge)) {
+                    if (dragn.Clothes == key) {
+                        // if value doesn't exist in stats.houses array
+                        if (!stats.houses.includes(value)) {
+                            stats.houses.push(value);
+                        } // if value
+                    } // if Clothing
+                } // for houses.pledge
+                // for each houses.layers array
+
+                for (let i = 0; i < util.houses.layers.length; i++) {
+                    const key = util.houses.layers[i];
+                    // if dragn[key] is in rare array
+                    if (util.houses.rare.includes(dragn[key])) {
+                        stats.rare++;
+                    } // if rare
+                } // for houses.layers
+            }); // forEach dragnsSnap
+            return resolve(stats);
+        }); // return new Promise
+    }, // pledgeStats
 
     "frameHTML": async function(frame) {
         //console.log("build html for frame", JSON.stringify(frame));

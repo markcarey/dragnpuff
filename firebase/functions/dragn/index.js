@@ -113,13 +113,18 @@ api.get(['/api/frames/top', '/api/frames/top/:fid'], async function (req, res) {
   }
   // get top dragns from firestore referrals collection by count descending
   const db = getFirestore();
-  const query = db.collection("referrals").orderBy("count", "desc").limit(5);
+  const query = db.collection("referrals").orderBy("count", "desc").limit(7);
   const querySnapshot = await query.get();
   var frameText = "Top DragNs\n";
   var rank = 1;
+  const team = ["8685", "375831", "355110", "309710"];
   querySnapshot.forEach((doc) => {
-    frameText += `#${rank} - ${doc.data().username} (${doc.data().count})\n`;
-    rank++;
+    if (team.includes(doc.id)) {
+      // no-op
+    } else {
+      frameText += `#${rank} - ${doc.data().username} (${doc.data().count - 1})\n`;
+      rank++;
+    }
   });
   frame.imageText = frameText;
   frame.image = `https://frm.lol/api/dragnpuff/frimg/bg2/${encodeURIComponent(frame.imageText)}.png`;
@@ -163,6 +168,149 @@ api.get(['/api/frames/flex', '/flex'], async function (req, res) {
   res.send(html);
 }); // GET /api/frames/flex
 
+api.get(['/api/frames/pixel', '/pixel'], async function (req, res) {
+  console.log("start GET /api/frames/pixel path", req.path);
+  var frame = {};
+  frame.id = "DragN x Pixel";
+  frame.square = true;
+  frame.postUrl = `https://api.dragnpuff.xyz/api/frames/pixelnounsAirdrop`;
+  frame.image = `https://api.dragnpuff.xyz/img/pixel.gif`;
+  frame.buttons = [
+    { 
+      "label": "Claim",
+      "action": "post"
+    },
+    {
+      "label": "Mint",
+      "action": "post",
+      "postUrl": "https://api.dragnpuff.xyz/api/frames/mint" 
+    }
+  ];
+  const html = await util.frameHTML(frame);
+  res.send(html);
+}); // GET /api/frames/pixel
+
+api.get(['/api/frames/choose', '/choose'], async function (req, res) {
+  console.log("start GET /api/frames/choose path", req.path);
+  var frame = {};
+  frame.id = "All Must Choose";
+  frame.square = true;
+  frame.postUrl = `https://api.dragnpuff.xyz/api/frames/choose`;
+  frame.image = `https://api.dragnpuff.xyz/img/choose.gif`;
+  frame.buttons = [
+    { 
+      "label": "Choose",
+      "action": "post"
+    },
+    {
+      "label": "Mint",
+      "action": "post",
+      "postUrl": "https://api.dragnpuff.xyz/api/frames/mint" 
+    }
+  ];
+  const html = await util.frameHTML(frame);
+  res.send(html);
+}); // GET /api/frames/choose
+
+api.post(['/api/frames/choose'], async function (req, res) {
+  console.log("start POST /api/frames/choose path", req.path);
+  const frame = await actions.choose(req);
+  const html = await util.frameHTML(frame);
+  res.send(html);
+}); // POST /api/frames/choose
+
+api.get(['/api/frames/house/:house', '/house/:house'], async function (req, res) {
+  console.log("start GET /api/frames/house path", req.path);
+  const house = req.params.house;
+  var frame = {};
+  frame.id = "House of " + house;
+  frame.square = true;
+  frame.postUrl = `https://api.dragnpuff.xyz/api/frames/choose`;
+  frame.image = `https://dragnpuff.xyz/img/house-of-${house}.png`;
+  frame.buttons = [
+    { 
+      "label": "Leaderboard",
+      "action": "post",
+      "postUrl": "https://api.dragnpuff.xyz/api/frames/leaderboard"
+    }
+  ];
+  const html = await util.frameHTML(frame);
+  res.send(html);
+}); // GET /api/frames/house
+
+api.get(['/api/frames/leaderboard', '/leaderboard'], async function (req, res) {
+  console.log("start GET /api/frames/leaderboard path", req.path);
+  var frame = {};
+  frame.id = "Leaderboard";
+  frame.square = true;
+  frame.postUrl = `https://api.dragnpuff.xyz/api/frames/leaderboard`;
+  frame.imageText = '';
+  // get houses from firestore ordered by total descending
+  const db = getFirestore();
+  const query = db.collection("houses").orderBy("total", "desc").limit(7);
+  const querySnapshot = await query.get();
+  var rank = 1;
+  querySnapshot.forEach((doc) => {
+    frame.imageText += `#${rank} - ${doc.id} (${doc.data().total})\n`;
+    rank++;
+  });
+  frame.image = `https://frm.lol/api/dragnpuff/frimg/leaderboard/${encodeURIComponent(frame.imageText)}.png`;
+  frame.buttons = [
+    { 
+      "label": "Choose",
+      "action": "post",
+      "postUrl": "https://api.dragnpuff.xyz/api/frames/choose"
+    },
+    {
+      "label": "Mint",
+      "action": "post",
+      "postUrl": "https://api.dragnpuff.xyz/api/frames/mint" 
+    }
+  ];
+  const html = await util.frameHTML(frame);
+  res.send(html);
+}); // GET /api/frames/leaderboard
+
+api.post(['/api/frames/leaderboard', '/leaderboard'], async function (req, res) {
+  console.log("start POST /api/frames/leaderboard path", req.path);
+  var frame = {};
+  frame.id = "Leaderboard";
+  frame.square = true;
+  frame.postUrl = `https://api.dragnpuff.xyz/api/frames/leaderboard`;
+  frame.imageText = '';
+  // get houses from firestore ordered by total descending
+  const db = getFirestore();
+  const query = db.collection("houses").orderBy("total", "desc").limit(7);
+  const querySnapshot = await query.get();
+  var rank = 1;
+  querySnapshot.forEach((doc) => {
+    frame.imageText += `#${rank} - ${doc.id} (${doc.data().total})\n`;
+    rank++;
+  });
+  frame.image = `https://frm.lol/api/dragnpuff/frimg/leaderboard/${encodeURIComponent(frame.imageText)}.png`;
+  frame.buttons = [
+    { 
+      "label": "Choose",
+      "action": "post",
+      "postUrl": "https://api.dragnpuff.xyz/api/frames/choose"
+    },
+    {
+      "label": "Mint",
+      "action": "post",
+      "postUrl": "https://api.dragnpuff.xyz/api/frames/mint" 
+    }
+  ];
+  const html = await util.frameHTML(frame);
+  res.send(html);
+}); // POST /api/frames/leaderboard
+
+api.post(['/api/frames/pixelnounsAirdrop'], async function (req, res) {
+  console.log("start POST /api/frames/pixelnounsAirdrop path", req.path);
+  const frame = await actions.pixelnounsAirdrop(req);
+  const html = await util.frameHTML(frame);
+  res.send(html);
+}); // POST /api/frames/pixelnounsAirdrop
+
 api.post(['/api/frames/flex'], async function (req, res) {
   console.log("start POST /api/frames/flex path", req.path);
   const frame = await actions.flex(req);
@@ -199,8 +347,16 @@ api.get('/api/frimg/:imageText.png', async function (req, res) {
   return res.end(img);
 }); // GET /api/frimg/:imageText.png
 
+api.get(['/api/pledgestats/:fid'], async function (req, res) {
+  console.log("start GET /api/pledgestats/:fid path", req.path);
+  const fid = req.params.fid;
+  const stats = await util.pledgeStats(fid);
+  res.json(stats);
+}); // GET /api/pledgestats/:fid
+
+
 api.get(['/api/importmeta'], async function (req, res) {
-  return res.status(404).send('Not found');
+  //return res.status(404).send('Not found');
   var start = parseInt(req.query.start);
   var end = parseInt(req.query.end);
   console.log("start GET /api/importmeta path", req.path, start, end);

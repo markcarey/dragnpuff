@@ -55,6 +55,22 @@
           "function": "api"
         },
         {
+          "source": "/pixel",
+          "function": "api"
+        },
+        {
+          "source": "/choose",
+          "function": "api"
+        },
+        {
+          "source": "/leaderboard",
+          "function": "api"
+        },
+        {
+          "source": "/house/**",
+          "function": "api"
+        },
+        {
           "source": "/random.png",
           "function": "api"
         }
