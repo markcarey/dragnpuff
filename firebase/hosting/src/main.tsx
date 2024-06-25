@@ -6,7 +6,7 @@ import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { chain, configureChains, createClient, WagmiConfig } from "wagmi";
 import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 import { publicProvider } from "wagmi/providers/public";
-import { ChakraProvider } from "@chakra-ui/react";
+import { ChakraProvider, extendTheme } from "@chakra-ui/react";
 
 const BaseChain = {
   id: 8453,
@@ -27,6 +27,27 @@ const BaseChain = {
   iconUrls: ["https://dragnpuff.xyz/img/base.svg", "https://dragnpuff.xyz/img/base.png"],
   testnet: false,
 }
+
+
+// Version 1: Using objects
+const theme = extendTheme({
+  styles: {
+    global: {
+      // styles for the `body`
+      body: {
+        bg: '#17101f',
+        color: 'white',
+      },
+      // styles for the `a`
+      a: {
+        color: 'teal.500',
+        _hover: {
+          textDecoration: 'underline',
+        },
+      },
+    },
+  },
+})
 
 
 const { chains, provider } = configureChains(
@@ -56,7 +77,7 @@ const wagmiClient = createClient({
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ChakraProvider>
+    <ChakraProvider theme={theme}>
       <WagmiConfig client={wagmiClient}>
         <RainbowKitProvider chains={chains}>
           <App />
