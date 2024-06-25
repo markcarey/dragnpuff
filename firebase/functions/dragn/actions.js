@@ -365,7 +365,10 @@ module.exports = {
             state.nomBalance = await util.nomBalance(frameResult.action.interactor);
             log("choose: nomBalance", state.nomBalance);
             if (state.method == "check") {
-                frame.imageText = `Choose wisely, ${state.username}!\nYou have ${stats.dragns} DragNs`;
+                frame.imageText = `Choose wisely, ${state.username}!\nYou have ${stats.dragns} DragN`;
+                if (stats.dragns > 1) {
+                    frame.imageText += "s";
+                }
                 // if stats.houses.length <= 4 then one button for each house
                 if ( (stats.houses.length > 0) && (stats.houses.length <= 4) ) {
                     state.chooseType = "buttons";
@@ -380,8 +383,8 @@ module.exports = {
                     state.chooseType = "input";
                     frame.imageText += `\nChoose one of `;
                     if (stats.houses.length == 0) {
-                        // an array of the values of util.houses.pledge object
-                        stats.houses = Object.keys(util.houses.pledge);
+                        // create an arrays of the values of the pledge object
+                        stats.houses = Object.values(util.houses.pledge);
                     }
                     for (var i = 0; i < stats.houses.length; i++) {
                         frame.imageText += `${stats.houses[i]}`;

@@ -397,6 +397,9 @@ module.exports = {
                 var dragnID = dragn.tokenId;
                 dragnIDs.push(parseInt(dragnID));
             }
+            if (dragnIDs.length == 0) {
+                return resolve(stats);
+            }
             // get dragns from firestore
             const firestore = getFirestore();
             const dragnsRef = firestore.collection("dragns");
