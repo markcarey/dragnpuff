@@ -2,10 +2,13 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import "@rainbow-me/rainbowkit/styles.css";
-import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import { chain, configureChains, createClient, WagmiConfig } from "wagmi";
-import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
-import { publicProvider } from "wagmi/providers/public";
+import { getDefaultConfig, getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+//import { chain, configureChains, createClient, WagmiConfig } from "wagmi";
+//import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
+//import { publicProvider } from "wagmi/providers/public";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { WagmiProvider } from 'wagmi';
+//import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { ChakraProvider, extendTheme } from "@chakra-ui/react";
 
 const BaseChain = {
@@ -49,40 +52,26 @@ const theme = extendTheme({
   },
 })
 
+import { base, mainnet } from 'wagmi/chains';
 
-const { chains, provider } = configureChains(
-  [BaseChain, chain.mainnet], // you can add more chains here like chain.mainnet, chain.optimism etc.
-  [
-    jsonRpcProvider({
-      rpc: () => {
-        return {
-          http: "https://mainnet.base.org/", 
-        };
-      },
-    }),
-    publicProvider(),
-  ]
-);
-
-const { connectors } = getDefaultWallets({
-  appName: "Next.js Chakra Rainbowkit Wagmi Starter",
-  chains,
+const config = getDefaultConfig({
+  appName: 'DragNPuff',
+  projectId: '6f8cffe8dabbbfc1d4633a45cd1abb67',
+  chains: [base, mainnet],
 });
 
-const wagmiClient = createClient({
-  autoConnect: false,
-  connectors,
-  provider,
-});
+const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>
-      <WagmiConfig client={wagmiClient}>
-        <RainbowKitProvider chains={chains}>
-          <App />
-        </RainbowKitProvider>
-      </WagmiConfig>
+      <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider>
+            <App />
+          </RainbowKitProvider>
+      </QueryClientProvider>
+      </WagmiProvider>
     </ChakraProvider>
   </React.StrictMode>
 );

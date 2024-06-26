@@ -16,13 +16,17 @@ import {
   extendTheme
 } from '@chakra-ui/react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { waitForTransactionReceipt } from '@wagmi/core'
 import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
-import { useAccount, useContractRead, useContractWrite } from 'wagmi';
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import nftJson from './DragNPuff.json';
 import minterJson from './ERC721Minter.json';
 import erc20Json from './IERC20.json';
 import { m, motion } from 'framer-motion';
+import { css } from '@emotion/react';
+
+    //"@rainbow-me/rainbowkit": "^0.4.1",
 
 // production:
 //const DRAGN_CONTRACT = '0xCe68d1Fe77F5B5A37b86E2ae50cd313819C600B7';
@@ -41,35 +45,21 @@ const getThumbURL = (tokenId: string | number) =>
 
 
 function App() {
-  const nftConfig = {
-    addressOrName: DRAGN_CONTRACT,
-    contractInterface: nftJson.abi,
-  };
-  const minterConfig = {
-    addressOrName: MINTER_ADDRESS,
-    contractInterface: minterJson.abi,
-  };
-  const nomConfig = {
-    addressOrName: NOM_CONTRACT,
-    contractInterface: erc20Json.abi,
-  };
-  const { data: tokenURI } = useContractRead({
-    ...nftConfig,
-    functionName: 'tokenURI',
-    enabled: false,
-  });
+
   const [imgURL, setImgURL] = useState('');
 
   //setImgURL('https://dragnpuff.xyz/img/dragnpuff.gif');
 
-  const { writeAsync: mint, error: mintError } = useContractWrite({
-    ...minterConfig,
-    functionName: 'mint',
-  });
-  const { writeAsync: mintBatch, error: mintBatchError } = useContractWrite({
-    ...minterConfig,
-    functionName: 'mintBatch',
-  });
+  //const { writeAsync: mint, error: mintError } = useWriteContract({
+  //  ...minterConfig,
+  //  functionName: 'mint',
+  //});
+  //const { writeAsync: mintBatch, error: mintBatchError } = useWriteContract({
+  //  ...minterConfig,
+  //  functionName: 'mintBatch',
+  //});
+  const { status, error, data: hash, isPending, writeContract } = useWriteContract()
+
   const [mintLoading, setMintLoading] = useState(false);
   const { address } = useAccount();
   const isConnected = !!address;
@@ -77,22 +67,24 @@ function App() {
   const [quantity, setQuantity] = useState<number>();
   const [hasNom, setHasNom] = useState(false);
 
-  const { data: balanceOf } = useContractRead({
-    ...nomConfig,
+  const { data: balanceOf } = useReadContract({
+    address: NOM_CONTRACT,
+    abi: erc20Json.abi,
     functionName: 'balanceOf',
     args: [address],
-    enabled: isConnected,
-    onSettled(data, error) {
-      console.log('Settled', { data, error });
-      if (data) {
-        setHasNom(data.gt(ethers.utils.parseEther('100000')));
-      }
+    query: {
+      enabled: isConnected,
     },
   });
+
+  const { data: receipt} = useWaitForTransactionReceipt({
+    hash
+  })
 
   const onMintClick = async () => {
     try {
       setMintLoading(true);
+      console.log('onMint: mintLoading', mintLoading);
       console.log('Minting', { address, quantity });
       var ethPrice = '0.00000069'; // TODO: chnage to 0.0069
       if (hasNom) {
@@ -105,34 +97,63 @@ function App() {
       var tx;
       if (q && q > 1) {
         const batchPrice = ethers.utils.parseEther(ethPrice).mul(q);
-        tx = await mintBatch({
-          args: [address, quantity, { value: batchPrice }],
+        writeContract({
+          address: MINTER_ADDRESS,
+          abi: minterJson.abi,
+          functionName: 'mintBatch',
+          args: [address, q],
+          value: batchPrice.toBigInt(),
         });
       } else {
-        tx = await mint({
-          args: [address, { value: ethers.utils.parseEther(ethPrice) }],
-        });
+        console.log('Ready to writeContract for 1: Minting', { address, q });
+        console.log('...with price', ethers.utils.parseEther(ethPrice));
+        // ethPrice converted to type BigInt:
+        const mintPrice = ethers.utils.parseEther(ethPrice).toBigInt();
+        console.log('...with price', mintPrice);
+        try {
+          writeContract({
+            address: MINTER_ADDRESS,
+            abi: minterJson.abi,
+            functionName: 'mint',
+            args: [address],
+            value: mintPrice,
+          });
+        } catch (error) {
+          console.error('Error writing contract', error);
+        }
       }
-      const receipt = await tx.wait();
-      console.log('TX receipt', receipt);
-      // @ts-ignore
-      const mintedTokenId = parseInt(receipt.logs[0].topics[3]);
-      setMintedTokenId(mintedTokenId);
     } catch (error) {
       console.error(error);
     } finally {
-      setMintLoading(false);
+      //setMintLoading(false);
     }
   };
 
   useEffect(() => {
     (async () => {
+      console.log('mintLoading', mintLoading);
+      if (error) {
+        console.log('error', error);
+      }
+      if (receipt) {
+        console.log('useEffect TX receipt', receipt);
+        const mintedTokenId = receipt.logs[0].topics[3];
+        setMintedTokenId(parseInt(mintedTokenId as string));
+      }
+      if (balanceOf) {
+        console.log('Balance of', balanceOf.toString());
+        setHasNom(balanceOf > (ethers.utils.parseEther('100000')));
+      }
       if (mintedTokenId) {
+        setMintLoading(false);
+        console.log('Minted token ID', mintedTokenId);
         //const res = await (await fetch(tokenURI as unknown as string)).json();
         //setImgURL(res.image);
         setImgURL(getThumbURL(mintedTokenId.toString()));
       } else {
         if (isConnected) {
+          console.log("address", address);
+          console.log('hasNom', hasNom);
           if (hasNom) {
             setImgURL('https://frm.lol/api/dragnpuff/frimg/You%20have%20100K%20%24NOM%3A%20Mint%20for%200.0042%20ETH%20each.png');
           } else {
@@ -141,31 +162,29 @@ function App() {
         }
       }
     })();
-  }, [mintedTokenId, hasNom, isConnected]);
+  }, [mintedTokenId, hasNom, isConnected, receipt, balanceOf, status, mintLoading]);
 
   return (
-    
-
     <Container 
       paddingY='10'
       display='flex'
       flexDirection='column'
       alignItems='center'
     >
-
+    
       <ConnectButton />
 
       {imgURL ? (
         <Box
           marginTop='4'
         >
-          <Image src={imgURL} width='' />
+          <Image src={imgURL} width='' maxW='1024' />
         </Box>
       ) : (
         <Box
           marginTop='4'
         >
-          <Image src='https://dragnpuff.xyz/img/dragnpuff.gif' width='' />
+          <Image src='https://dragnpuff.xyz/img/dragnpuff.gif' maxW='1024' width='' />
         </Box>
       )}
 
@@ -194,27 +213,9 @@ function App() {
         </Button>
       )}
 
-      {mintError && (
-        <Text marginTop='4'>⛔️ Mint unsuccessful! Error message:</Text>
+      {mintLoading && (
+        <Text marginTop='2'>Minting... please wait</Text>
       )}
-
-      {mintBatchError && (
-        <Text marginTop='4'>⛔️ Mint unsuccessful! Error message:</Text>
-      )}
-
-      {mintError && (
-        <pre style={{ marginTop: '8px', color: 'red' }}>
-          <code>{JSON.stringify(mintError, null, ' ')}</code>
-        </pre>
-      )}
-
-      {mintBatchError && (
-        <pre style={{ marginTop: '8px', color: 'red' }}>
-          <code>{JSON.stringify(mintBatchError, null, ' ')}</code>
-        </pre>
-      )}
-
-      {mintLoading && <Text marginTop='2'>Minting... please wait</Text>}
 
       {mintedTokenId && (
         <Text marginTop='2'>
@@ -229,9 +230,11 @@ function App() {
           </Link>
         </Text>
       )}
+
     </Container>
     
-  );
-}
+  ); // return
+
+} // App
 
 export default App;
