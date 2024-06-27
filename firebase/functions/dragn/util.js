@@ -113,6 +113,22 @@ module.exports = {
         ]
     }, // houses
 
+    "houseForFid": function(fid) {
+        const util = module.exports;
+        return new Promise(async function(resolve, reject) {
+            var house;
+            // get houses from firestore where fid is in fids array element
+            const firestore = getFirestore();
+            const housesRef = firestore.collection("houses");
+            const housesSnap = await housesRef.where("fids", "array-contains", fid).get();
+            housesSnap.forEach((doc) => {
+                house = doc.data();
+                house.id = doc.id;
+            }); // forEach housesSnap
+            return resolve(house);
+        }); // return new Promise
+    }, // houseForFid
+
     "isHODLing": async function(user) {
         const util = module.exports;
         return new Promise(async function(resolve, reject) {

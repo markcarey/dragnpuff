@@ -74,6 +74,14 @@
         {
           "source": "/random.png",
           "function": "api"
+        },
+        {
+          "source": "/web",
+          "destination": "/mint.html"
+        },
+        {
+          "source": "/mint",
+          "destination": "/mint.html"
         }
       ]
   },
