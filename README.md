@@ -1,14 +1,14 @@
-# DragN'Puff
+# House of the DragNs
 
-DragN'Puff is a Farcaster-first social game on Base, featuring generative artwork by @nomadicframe. Players join teams by pledging their allegience to Houses of the DragN focused on the top communities on Farcaster. Specific traits of DragN'Puff NFTs unlock access to the various Houses. The game unfolds gradually on the decentralized social landscape of Farcaster, through frames, cast actions, and other social engagement touchpoints. Gameplay stages and quests are revealed gradually to players. All must choose.
+House of the DragNs is a Farcaster-first social game on Base, featuring generative artwork by @nomadicframe. Players join teams by pledging their allegience to Houses of the DragN focused on the top communities on Farcaster. Specific traits of DragN'Puff NFTs unlock access to the various Houses. The game unfolds gradually on the decentralized social landscape of Farcaster, through frames, cast actions, and other social engagement touchpoints. Gameplay stages and quests are revealed gradually to players. All must choose.
 
 # About
 
-DragN'Puff aims to provide community and social gaming experiences built on Farcaster and Base. Onchain assets powering these experiences include the ERC20 token $NOM and the ERC721 NFT collection DragN'Puff. The DragN'Puff NFT collection was deployed to Base Mainnet in June 2024, during the **Onchain Summer Buildathon** hackathon. The high-resolution generative art was created by @nomadicframe and features 111 uniques trait with varying rarities spanning 7 categories. While DragNs can be used as PFPs, they act primarily as a game asset for House of DragNs, a social game on Farcaster. Players pledge their DragNs to community-themes Houses (teams). Houses compete with either other through social engagement actions, including Farcaster frames, cast actions, casts, and reactions. A Leaderboard frame shows the current strength of the 7 Houses.
+House of the DragNs aims to provide community and social gaming experiences built on Farcaster and Base. Onchain assets powering these experiences include the ERC20 token $NOM and the ERC721 NFT collection DragN'Puff. The DragN'Puff NFT collection was deployed to Base Mainnet in June 2024, during the **Onchain Summer Buildathon** hackathon. The high-resolution generative art was created by @nomadicframe and features 111 uniques trait with varying rarities spanning 7 categories. While DragNs can be used as PFPs, they act primarily as a game asset for House of DragNs, a social game on Farcaster. Players pledge their DragNs to community-themes Houses (teams). Houses compete with either other through social engagement actions, including Farcaster frames, cast actions, casts, and reactions. A Leaderboard frame shows the current strength of the 7 Houses.
 
 # How it was built
 
-All code for DragN'Puff and House of DragNs was written duing the **Onchain Summer Buildathon** hackathon in June 2024. Artwork for the DragN'Puff NFT collection was mostly completed before the hackathon.
+All code for DragN'Puff and House of the DragNs was written duing the **Onchain Summer Buildathon** hackathon in June 2024. Artwork for the DragN'Puff NFT collection was mostly completed before the hackathon.
 
 ## Onchain - Contracts Deployed to Base
 
@@ -18,6 +18,24 @@ Two contracts were deployed to Base Mainnet during June 2024:
 - `ERC721Minter.sol` - This contract was written as the primary minting interface, supporting two price points and a pre-sale mechanism. Open for 24 hours, the presale was available to holders of 100,000+ $NOM. Now in the opublic mint phase, minters pay different prices in ETH based on their $NOM holdings.
 
 The above structure was chosen for flexibility, as the minter contract can be replaced at any time, or a second minter contract could be added, possibly employing different mechanisms for minting (auctions, airdrops, token streaming, etc.)
+
+## Farcaster Platform
+
+The House of the DragNs game takes place on the Farcaster decentralized social platform, using social interactions including frames, cast actions, and more.
+
+### Frames
+
+- *Mint Frame*. Players join the game by using a Farcaster "Frame" (social embedded app) to mint DragN'Puff game assets. 
+- *Flex Frame*. This frame is uses to flex (share) a player's DragN.
+- *Choose Frame*. Players pledge allegiance to one of the 7 Houses of the DragN using this frame. All must choose.
+- *Leaderboard Frame*. Lists the 7 Houses of the DragN with the strength scores for each.
+- *Houses Frames*. Enable the players to flex/share their pledged House.
+- *Dragn x Pixel Frame*. A limited time frame and mini affiliate program that rewarded DragN mint referrals with Pixel Nouns NFTs on Degen chain.
+- *Breathed Fire Frame*. Players can flex/share when they "breathe fire" on another house (see cast action below)
+
+### Cast Actions
+
+- *Breath Fire*. After installing this cast action, Farcaster users can use it on any cast of other players from opposing Houses, to "breathe fire" on the target house. Successful fire-breathing can be shared by casting the "Breathed Fire Frame" mentioned above.
 
 
 # Summary
