@@ -6,19 +6,6 @@ House of the DragNs is a Farcaster-first social game on Base, featuring generati
 
 House of the DragNs aims to provide community and social gaming experiences built on Farcaster and Base. Onchain assets powering these experiences include the ERC20 token $NOM and the ERC721 NFT collection DragN'Puff. The DragN'Puff NFT collection was deployed to Base Mainnet in June 2024, during the **Onchain Summer Buildathon** hackathon. The high-resolution generative art was created by @nomadicframe and features 111 uniques trait with varying rarities spanning 7 categories. While DragNs can be used as PFPs, they act primarily as a game asset for House of DragNs, a social game on Farcaster. Players pledge their DragNs to community-themes Houses (teams). Houses compete with either other through social engagement actions, including Farcaster frames, cast actions, casts, and reactions. A Leaderboard frame shows the current strength of the 7 Houses.
 
-# How it was built
-
-All code for DragN'Puff and House of the DragNs was written duing the **Onchain Summer Buildathon** hackathon in June 2024. Artwork for the DragN'Puff NFT collection was mostly completed before the hackathon.
-
-## Onchain - Contracts Deployed to Base
-
-Two contracts were deployed to Base Mainnet during June 2024:
-
-- `DragNPuff.sol` - ERC721 contract for the DragN'Puff NFT collection. Supports functions permission-gated functions `safeMint()` and `safeMintBatch()` and ERC721 votes to support future goverance voting. The contract is setup in a modular that relies on AccessControl to enabling minting via other contracts or trusted users.
-- `ERC721Minter.sol` - This contract was written as the primary minting interface, supporting two price points and a pre-sale mechanism. Open for 24 hours, the presale was available to holders of 100,000+ $NOM. Now in the opublic mint phase, minters pay different prices in ETH based on their $NOM holdings.
-
-The above structure was chosen for flexibility, as the minter contract can be replaced at any time, or a second minter contract could be added, possibly employing different mechanisms for minting (auctions, airdrops, token streaming, etc.)
-
 ## Farcaster Platform
 
 The House of the DragNs game takes place on the Farcaster decentralized social platform, using social interactions including frames, cast actions, and more.
@@ -36,6 +23,34 @@ The House of the DragNs game takes place on the Farcaster decentralized social p
 ### Cast Actions
 
 - *Breath Fire*. After installing this cast action, Farcaster users can use it on any cast of other players from opposing Houses, to "breathe fire" on the target house. Successful fire-breathing can be shared by casting the "Breathed Fire Frame" mentioned above.
+
+# How it was built
+
+All code for DragN'Puff and House of the DragNs was written duing the **Onchain Summer Buildathon** hackathon in June 2024. Artwork for the DragN'Puff NFT collection was mostly completed before the hackathon.
+
+## Onchain - Contracts Deployed to Base
+
+Two contracts were deployed to Base Mainnet during June 2024:
+
+- `DragNPuff.sol` - ERC721 contract for the DragN'Puff NFT collection. Supports functions permission-gated functions `safeMint()` and `safeMintBatch()` and ERC721 votes to support future goverance voting. The contract is setup in a modular that relies on AccessControl to enabling minting via other contracts or trusted users.
+- `ERC721Minter.sol` - This contract was written as the primary minting interface, supporting two price points and a pre-sale mechanism. Open for 24 hours, the presale was available to holders of 100,000+ $NOM. Now in the opublic mint phase, minters pay different prices in ETH based on their $NOM holdings.
+
+The above structure was chosen for flexibility, as the minter contract can be replaced at any time, or a second minter contract could be added, possibly employing different mechanisms for minting (auctions, airdrops, token streaming, etc.)
+
+## Server
+
+Server-side elements include:
+
+- *Firebase Functions*. Powering Farcaster frames, api endpoints, and rendering NFT metadata and images
+- *Google Firestore*. Data store for gameplay scores and actions.
+- *Google Cloud Storage*. Storage of high-resolution (4000px x 4000px) NFT images, thumbnails, and JSON metadata.
+
+### 3rd Party APIs
+
+The following were used by the Frame and Cast Action functions:
+
+- *Airstack*. APIs for frame validation and querying for all of the DragNs owned by a speific Farcaster user.
+- *Neynar*. APIs for get Farcaster user data, and to send casts of behalf of a bot user
 
 
 # Summary
