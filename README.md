@@ -23,9 +23,9 @@ The House of the DragNs game takes place on the Farcaster decentralized social p
 - *Choose Frame*. Players pledge allegiance to one of the 7 Houses of the DragN using this frame. All must choose.
 ![Choose](https://dragnpuff.xyz/img/screen-choose.png)
 - *Leaderboard Frame*. Lists the 7 Houses of the DragN with the strength scores for each.
-![Flex](https://dragnpuff.xyz/img/screen-leaderboard.png)
+![Leaders](https://dragnpuff.xyz/img/screen-leaderboard.png)
 - *Houses Frames*. Enable the players to flex/share their pledged House.
-![Flex](https://dragnpuff.xyz/img/screen-house.png)
+![House](https://dragnpuff.xyz/img/screen-choice.png)
 - *Dragn x Pixel Frame*. A limited time frame and mini affiliate program that rewarded DragN mint referrals with Pixel Nouns NFTs on Degen chain.
 ![Pixel](https://dragnpuff.xyz/img/screen-pixel.png)
 - *Breathed Fire Frame*. Players can flex/share when they "breathe fire" on another house (see cast action below)
