@@ -118,12 +118,14 @@ module.exports = {
         return new Promise(async function(resolve, reject) {
             var house;
             // get houses from firestore where fid is in fids array element
+            log("houseForFid", fid);
             const firestore = getFirestore();
             const housesRef = firestore.collection("houses");
             const housesSnap = await housesRef.where("fids", "array-contains", fid).get();
             housesSnap.forEach((doc) => {
                 house = doc.data();
                 house.id = doc.id;
+                log(`house for ${fid}`, house);
             }); // forEach housesSnap
             return resolve(house);
         }); // return new Promise

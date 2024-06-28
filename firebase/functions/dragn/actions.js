@@ -16,6 +16,91 @@ const util = require("./util");
 
 module.exports = {
 
+    "fire": async function(req) {
+        return new Promise(async function(resolve, reject) {
+            await util.validateAirstackREST(req);
+            var frame = {};
+            frame.id = "Breathe Fire";
+            frame.square = true;
+            frame.postUrl = `https://api.dragnpuff.xyz/api/frames/house/fire`;
+            var state;
+            if ("state" in req.body.untrustedData) {
+                state = JSON.parse(decodeURIComponent(req.body.untrustedData.state));
+            } else {
+                state = {
+                    "method": "start"
+                };
+            }
+            log("fire: state", state);
+            log("fire: req.body.untrustedData", req.body.untrustedData);
+            // get fid:
+            const breatherFid = req.body.untrustedData.fid;
+            log("fire: breatherFid", breatherFid);
+            // get target fid
+            const targetFid = parseInt(req.params.fid);
+            log("fire: targetFid", targetFid);
+            // if no targetFid
+            if (!targetFid) {
+                frame.imageText = "Install Breathe Fire cast action";
+                frame.buttons = [
+                    {
+                        "label": "Install",
+                        "action": "link",
+                        "target": "https://warpcast.com/~/add-cast-action?url=https%3A%2F%2Fdragnpuff.xyz%2Fapi%2Factions%2Ffire"
+                    }
+                ];
+                frame.image = `https://frm.lol/api/dragnpuff/frimg/${encodeURIComponent(frame.imageText)}.png`;
+                delete frame.imageText;
+                return resolve(frame);
+            }   
+            // check if breatherFid is in a house
+            const breatherHouse = await util.houseForFid(breatherFid);
+            log("fire: breatherHouse", breatherHouse);
+            if (!breatherHouse) {
+                frame.imageText = "You are not in a House.\n\nAll must choose.";
+                frame.postUrl = `https://api.dragnpuff.xyz/api/frames/choose`;
+                frame.buttons = [
+                    {
+                        "label": "Choose",
+                        "action": "post"
+                    }
+                ];
+                frame.image = `https://frm.lol/api/dragnpuff/frimg/${encodeURIComponent(frame.imageText)}.png`;
+                delete frame.imageText;
+                return resolve(frame);
+            }
+            // check if targetFid is in a house
+            const targetHouse = await util.houseForFid(targetFid);
+            log("fire: targetHouse", targetHouse);
+            if (!targetHouse) {
+                frame.imageText = "Target is not in a House.\n\nAll must choose.";
+                frame.postUrl = `https://api.dragnpuff.xyz/api/frames/choose`;
+                frame.image = `https://frm.lol/api/dragnpuff/frimg/${encodeURIComponent(frame.imageText)}.png`;
+                delete frame.imageText;
+                return resolve(frame);
+            } else {
+                if (breatherHouse.id == targetHouse.id) {
+                    frame.imageText = "You can't breathe fire on your own House!";
+                    frame.image = `https://frm.lol/api/dragnpuff/frimg/${encodeURIComponent(frame.imageText)}.png`;
+                    delete frame.imageText;
+                    return resolve(frame);
+                } else {
+                    frame.image = `https://dragnpuff.xyz/img/house-of-${targetHouse.id}-fire.gif`;
+                    // cast it button
+                    frame.buttons = [
+                        {
+                            "label": "Cast It!",
+                            "action": "link",
+                            "target": `https://warpcast.com/~/compose?text=${encodeURIComponent(`I just breathed fire on ${targetHouse.name}!`)}&embeds[]=https://dragnpuff.xyz/house/fire/${targetHouse.id}`
+                        }
+                    ];
+                } // if breatherHouse
+            } // if targetHouse
+            frame.state = state;
+            return resolve(frame);
+        }); // return new Promise
+    }, // fire
+
     "mint": async function(req) {
         return new Promise(async function(resolve, reject) {
             await util.validateAirstackREST(req);

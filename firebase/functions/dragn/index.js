@@ -190,6 +190,47 @@ api.get(['/api/frames/pixel', '/pixel'], async function (req, res) {
   res.send(html);
 }); // GET /api/frames/pixel
 
+api.post(['/api/frames/house/fire', '/api/frames/house/fire/:fid'], async function (req, res) {
+  console.log("start POST /api/frames/house/fire path", req.path);
+  const frame = await actions.fire(req);
+  const html = await util.frameHTML(frame);
+  res.send(html);
+}); // POST /api/frames/house/fire
+
+api.get(['/api/frames/house/fire', '/api/frames/house/fire/:house', '/house/fire/:house'], async function (req, res) {
+  console.log("start GET /api/frames/house/fire path", req.path);
+  const house = req.params.house;
+  var frame = {};
+  if (!house) {
+    frame.id = "Breathe Fire";
+    frame.square = true;
+    frame.imageText = "Install Breathe Fire cast action";
+    frame.buttons = [
+      {
+          "label": "Install",
+          "action": "link",
+          "target": "https://warpcast.com/~/add-cast-action?url=https%3A%2F%2Fdragnpuff.xyz%2Fapi%2Factions%2Ffire"
+      }
+    ];
+    frame.image = `https://frm.lol/api/dragnpuff/frimg/${encodeURIComponent(frame.imageText)}.png?v=2`;
+    delete frame.imageText;
+  } else {
+    frame.id = "House of " + house;
+    frame.square = true;
+    frame.postUrl = `https://api.dragnpuff.xyz/api/frames/house/fire`;
+    frame.image = `https://dragnpuff.xyz/img/house-of-${house}-fire.gif`;
+    frame.buttons = [
+      { 
+        "label": "Breathe Fire",
+        "action": "post",
+        "postUrl": "https://api.dragnpuff.xyz/api/frames/house/fire"
+      }
+    ];
+  } // end if house
+  const html = await util.frameHTML(frame);
+  res.send(html);
+}); // GET /api/frames/house/fire
+
 api.get(['/api/frames/choose', '/choose'], async function (req, res) {
   console.log("start GET /api/frames/choose path", req.path);
   var frame = {};
@@ -303,6 +344,31 @@ api.post(['/api/frames/leaderboard', '/leaderboard'], async function (req, res) 
   const html = await util.frameHTML(frame);
   res.send(html);
 }); // POST /api/frames/leaderboard
+
+
+api.get(`/api/actions/fire`, async function (req, res) {
+  console.log("start GET /api/actions/fire");
+  const responseJson = {
+    "name": "Breathe Fire",
+    "icon": "flame",
+    "description": "Breath fire on your DragN'Puff foes",
+    "action": {
+      "type": "post"
+    }
+  };
+  return res.json(responseJson);
+}); // GET /api/actions/alfafrens
+
+api.post(`/api/actions/fire`, async function (req, res) {
+  console.log("start POST /api/actions/alfafrens");
+  console.log("body", JSON.stringify(req.body));
+  await util.validateAirstackREST(req);
+  const responseJson = {
+    "type": "frame",
+    "frameUrl": `https://dragnpuff.xyz/api/frames/house/fire/${req.body.untrustedData.castId.fid}`,
+  };
+  return res.json(responseJson);
+}); // POST /api/actions/fire
 
 api.post(['/api/frames/pixelnounsAirdrop'], async function (req, res) {
   console.log("start POST /api/frames/pixelnounsAirdrop path", req.path);
