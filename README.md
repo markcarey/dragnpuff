@@ -40,7 +40,6 @@ Action:
 Result:
 ![Fired](https://dragnpuff.xyz/img/f.gif)
 
-
 # How it was built
 All code for DragN'Puff and House of the DragNs was written duing the **Onchain Summer Buildathon** hackathon in June 2024. Artwork for the DragN'Puff NFT collection was mostly completed before the hackathon.
 
@@ -65,7 +64,7 @@ The following were used by the Frame and Cast Action functions:
 - *Airstack*. APIs for frame validation and querying for all of the DragNs owned by a speific Farcaster user.
 - *Neynar*. APIs for get Farcaster user data, and to send casts of behalf of a bot user
 
-# Summary and Stats So Far
+# Summary and Stats (so far)
 House of the DragNs is social gaming experience built on Base and Farcaster. Gameplay happens via frames and other social interactions (cast actions, casts, reactions). Social sharing is facilitated and encouraged: launched only 2 weeks ago, almost 20,000 frames have been shared to date, attracting 20,000 likes, 13,000 replies, and 12,000 recasts (see Airstack Frame Analytics image attached to this submission). Beginning imminently, a campaign to attract players from other social networks will aim to use the NFT collection as a stepping stone to pull more users into the Farcaster social ecosystem, where the gameplay happens.
 ![Airstack](https://dragnpuff.xyz/img/screen-airstack.png)
 
